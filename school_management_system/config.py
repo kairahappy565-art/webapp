@@ -1,12 +1,21 @@
 import os
+import sys
 from datetime import timedelta
 
-basedir = os.path.abspath(os.path.dirname(__file__))
+
+def get_base_dir():
+    if getattr(sys, 'frozen', False):
+        return os.path.dirname(sys.executable)
+    return os.path.dirname(os.path.abspath(__file__))
+
+
+BASE_DIR = get_base_dir()
+
 
 class Config:
     """Flask application configuration"""
     SECRET_KEY = 'your-secret-key-change-in-production'
-    SQLALCHEMY_DATABASE_URI = 'sqlite:///' + os.path.join(basedir, 'instance', 'school_management.db')
+    SQLALCHEMY_DATABASE_URI = f'sqlite:///{os.path.join(BASE_DIR, "school.db")}'
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     
     # Session configuration
