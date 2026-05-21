@@ -1,0 +1,118 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }} - School Management System{% endblock %}
+
+{% block page_title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="grid grid-2">
+    <div style="grid-column: 1 / -1;">
+        <div class="card">
+            <div class="card-body">
+                <form method="POST" class="form-row">
+                    <div class="form-group">
+                        <label for="employee_id">Employee ID *</label>
+                        <input type="text" id="employee_id" name="employee_id" required
+                               value="{{ teacher.employee_id if teacher else '' }}">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="first_name">First Name *</label>
+                        <input type="text" id="first_name" name="first_name" required
+                               value="{{ teacher.first_name if teacher else '' }}">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="last_name">Last Name *</label>
+                        <input type="text" id="last_name" name="last_name" required
+                               value="{{ teacher.last_name if teacher else '' }}">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="email">Email Address</label>
+                        <input type="email" id="email" name="email"
+                               value="{{ teacher.email if teacher else '' }}">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="phone">Phone Number *</label>
+                        <input type="tel" id="phone" name="phone" required
+                               value="{{ teacher.phone if teacher else '' }}">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="qualification">Qualification</label>
+                        <input type="text" id="qualification" name="qualification"
+                               value="{{ teacher.qualification if teacher else '' }}"
+                               placeholder="e.g., B.Sc, M.A">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="specialization">Specialization</label>
+                        <input type="text" id="specialization" name="specialization"
+                               value="{{ teacher.specialization if teacher else '' }}"
+                               placeholder="e.g., Mathematics, Physics">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="date_of_birth">Date of Birth</label>
+                        <input type="date" id="date_of_birth" name="date_of_birth"
+                               value="{{ teacher.date_of_birth if teacher else '' }}">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="gender">Gender</label>
+                        <select id="gender" name="gender">
+                            <option value="">Select Gender</option>
+                            <option value="Male" {% if teacher and teacher.gender == 'Male' %}selected{% endif %}>Male</option>
+                            <option value="Female" {% if teacher and teacher.gender == 'Female' %}selected{% endif %}>Female</option>
+                            <option value="Other" {% if teacher and teacher.gender == 'Other' %}selected{% endif %}>Other</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="department">Department</label>
+                        <input type="text" id="department" name="department"
+                               value="{{ teacher.department if teacher else '' }}"
+                               placeholder="e.g., Science, Mathematics">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="salary">Salary</label>
+                        <input type="number" id="salary" name="salary" step="0.01"
+                               value="{{ teacher.salary if teacher else '' }}">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="address">Address</label>
+                        <textarea id="address" name="address">{{ teacher.address if teacher else '' }}</textarea>
+                    </div>
+                    
+                    {% if teacher %}
+                    <div class="form-group">
+                        <label for="status">Status</label>
+                        <select id="status" name="status">
+                            <option value="Active" {% if teacher.status == 'Active' %}selected{% endif %}>Active</option>
+                            <option value="Inactive" {% if teacher.status == 'Inactive' %}selected{% endif %}>Inactive</option>
+                            <option value="Leave" {% if teacher.status == 'Leave' %}selected{% endif %}>On Leave</option>
+                        </select>
+                    </div>
+                    {% endif %}
+                    
+                    <div style="grid-column: 1 / -1;">
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-save"></i> {{ 'Update Teacher' if teacher else 'Add Teacher' }}
+                            </button>
+                            <a href="{{ url_for('teachers_list') }}" class="btn btn-secondary">
+                                <i class="fas fa-times"></i> Cancel
+                            </a>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

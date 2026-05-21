@@ -1,0 +1,152 @@
+{% extends 'base.html' %}
+
+{% block title %}Grade Summary - School Management System{% endblock %}
+
+{% block page_title %}Grade Summary{% endblock %}
+
+{% block extra_css %}
+<style>
+    .print-container {
+        padding: 20px;
+    }
+    .summary-card {
+        border: 1px solid var(--border-color);
+        border-radius: 10px;
+        background: #fff;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+    }
+
+    .summary-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 1px solid var(--border-color);
+        padding: 20px;
+        background: #f9f9fb;
+        border-top-left-radius: 10px;
+        border-top-right-radius: 10px;
+    }
+
+    .summary-details {
+        padding: 20px;
+    }
+
+    .summary-details table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 10px;
+    }
+
+    .summary-details th,
+    .summary-details td {
+        padding: 12px 10px;
+        border-bottom: 1px solid #ebedf4;
+        text-align: left;
+    }
+
+    .summary-details th {
+        width: 25%;
+        color: #555;
+        font-weight: 600;
+    }
+
+    .summary-label {
+        margin-bottom: 10px;
+        color: #333;
+    }
+
+    @media print {
+        body * {
+            visibility: hidden;
+        }
+        .print-container,
+        .print-container * {
+            visibility: visible;
+        }
+        .print-container {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+        }
+        .no-print {
+            display: none !important;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="print-container">
+    <div class="summary-card">
+        <div class="summary-card-header">
+            <div>
+                <h2>Grade Summary</h2>
+                <p class="text-muted">Created for a printable grade record</p>
+            </div>
+            <div class="no-print">
+                <button type="button" class="btn btn-primary" onclick="window.print();">
+                    <i class="fas fa-print"></i> Print
+                </button>
+                <a href="{{ url_for('grades_list') }}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Back to Grades
+                </a>
+            </div>
+        </div>
+
+        <div class="summary-details">
+            <h3 class="summary-label">Student Information</h3>
+            <table>
+                <tr>
+                    <th>Student Name</th>
+                    <td>{{ grade.student.get_full_name() }}</td>
+                </tr>
+                <tr>
+                    <th>Roll Number</th>
+                    <td>{{ grade.student.roll_number }}</td>
+                </tr>
+                <tr>
+                    <th>Class / Level</th>
+                    <td>{{ grade.student.class_level }}</td>
+                </tr>
+                <tr>
+                    <th>Teacher</th>
+                    <td>{{ grade.teacher.get_full_name() }}</td>
+                </tr>
+            </table>
+
+            <h3 class="summary-label">Grade Details</h3>
+            <table>
+                <tr>
+                    <th>Subject</th>
+                    <td>{{ grade.subject }}</td>
+                </tr>
+                <tr>
+                    <th>Exam Name</th>
+                    <td>{{ grade.exam_name or '-' }}</td>
+                </tr>
+                <tr>
+                    <th>Marks</th>
+                    <td>{{ grade.marks }}/{{ grade.total_marks }}</td>
+                </tr>
+                <tr>
+                    <th>Percentage</th>
+                    <td>{% if grade.percentage is not none %}{{ '%.2f'|format(grade.percentage) }}%{% else %}-{% endif %}</td>
+                </tr>
+                <tr>
+                    <th>Grade</th>
+                    <td>{{ grade.grade or '-' }}</td>
+                </tr>
+                <tr>
+                    <th>Recorded Date</th>
+                    <td>{{ grade.recorded_date.strftime('%d %b %Y') }}</td>
+                </tr>
+                <tr>
+                    <th>Remarks</th>
+                    <td>{{ grade.remarks or '-' }}</td>
+                </tr>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

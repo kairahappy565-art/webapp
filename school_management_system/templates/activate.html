@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Activate System - School Management</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="login-page">
+    <div class="auth-page-container">
+        <div class="auth-card" style="max-width: 680px;">
+            <div class="auth-header">
+                <div class="auth-brand">
+                    <i class="fas fa-shield-alt"></i>
+                    <h1>Activate Subscription</h1>
+                </div>
+                <p>Secure your school management system with a valid subscription plan. Choose Monthly or Yearly for offline protection and licensing.</p>
+            </div>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ 'success' if category == 'success' else 'danger' if category == 'error' else 'info' }}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <form method="post" action="{{ url_for('activate') }}" class="auth-form" autocomplete="off">
+                <div class="form-group">
+                    <label for="activation_password">Activation Password</label>
+                    <input type="password" name="activation_password" id="activation_password" required autocomplete="new-password" placeholder="Enter master activation password">
+                </div>
+
+                <div class="form-group">
+                    <label>Select Subscription Plan</label>
+                    <div class="subscription-grid">
+                        <label class="plan-option">
+                            <input type="radio" name="subscription_plan" value="Monthly" checked>
+                            <div class="plan-card">
+                                <div class="plan-header">
+                                    <span class="plan-label">Monthly</span>
+                                    <span class="plan-price">30 Days</span>
+                                </div>
+                                <p>Fast activation for short-term use. Perfect for trial or quick deployments.</p>
+                                <ul class="plan-benefits">
+                                    <li><i class="fas fa-check-circle"></i> 30-day license</li>
+                                    <li><i class="fas fa-check-circle"></i> Full offline support</li>
+                                    <li><i class="fas fa-check-circle"></i> Professional access</li>
+                                </ul>
+                            </div>
+                        </label>
+
+                        <label class="plan-option">
+                            <input type="radio" name="subscription_plan" value="Yearly">
+                            <div class="plan-card">
+                                <div class="plan-header">
+                                    <span class="plan-label">Yearly</span>
+                                    <span class="plan-price">365 Days</span>
+                                </div>
+                                <p>Recommended for schools and institutions needing long-term, stable access.</p>
+                                <ul class="plan-benefits">
+                                    <li><i class="fas fa-check-circle"></i> 1-year license</li>
+                                    <li><i class="fas fa-check-circle"></i> Best long-term value</li>
+                                    <li><i class="fas fa-check-circle"></i> Reliable offline license</li>
+                                </ul>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-block">Activate System</button>
+            </form>
+
+            <div class="auth-footer" style="margin-top: 24px; color: #e8f0ff;">
+                {% if license_info.active and license_info.expiry_date %}
+                    <p>Your current subscription plan: <strong>{{ license_info.subscription_type or 'Unknown' }}</strong></p>
+                    <p>Expiration date: <strong>{{ license_info.expiry_date.strftime('%d %B %Y') }}</strong></p>
+                    <p>Remaining days: <strong>{{ license_info.remaining_days }}</strong></p>
+                {% else %}
+                    <p>Activation is required before accessing the system dashboard.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</body>
+</html>

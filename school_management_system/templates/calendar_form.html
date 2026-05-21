@@ -1,0 +1,89 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }} - School Management System{% endblock %}
+
+{% block page_title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <div class="card-title">
+            <i class="fas fa-calendar-plus"></i> {{ title }}
+        </div>
+    </div>
+    <div class="card-body">
+        <form method="POST" style="max-width: 600px;">
+            <div class="form-group">
+                <label for="title">Event Title *</label>
+                <input type="text" id="title" name="title" required
+                       value="{{ event.title if event else '' }}"
+                       placeholder="e.g., School Holiday, Parent Meeting, Exam Day">
+            </div>
+            
+            <div class="form-group">
+                <label for="description">Description</label>
+                <textarea id="description" name="description" rows="3"
+                          placeholder="Additional details about the event">{{ event.description if event else '' }}</textarea>
+            </div>
+            
+            <div class="form-group">
+                <label for="event_date">Event Date *</label>
+                <input type="date" id="event_date" name="event_date" required
+                       value="{{ event.event_date.strftime('%Y-%m-%d') if event else '' }}">
+            </div>
+            
+            <div class="form-group">
+                <label for="event_type">Event Type *</label>
+                <select id="event_type" name="event_type" required>
+                    <option value="Event" {% if event and event.event_type == 'Event' %}selected{% endif %}>General Event</option>
+                    <option value="Holiday" {% if event and event.event_type == 'Holiday' %}selected{% endif %}>Holiday</option>
+                    <option value="Exam" {% if event and event.event_type == 'Exam' %}selected{% endif %}>Exam</option>
+                    <option value="Meeting" {% if event and event.event_type == 'Meeting' %}selected{% endif %}>Meeting</option>
+                    <option value="Sports" {% if event and event.event_type == 'Sports' %}selected{% endif %}>Sports</option>
+                    <option value="Other" {% if event and event.event_type == 'Other' %}selected{% endif %}>Other</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label class="checkbox-label">
+                    <input type="checkbox" id="is_reminder" name="is_reminder" 
+                           {% if event and event.is_reminder %}checked{% endif %}>
+                    <span class="checkmark"></span>
+                    Enable Reminder
+                </label>
+            </div>
+            
+            <div class="form-group" id="reminder_days_group" style="{% if not event or not event.is_reminder %}display: none;{% endif %}">
+                <label for="reminder_days">Reminder Days Before Event</label>
+                <input type="number" id="reminder_days" name="reminder_days" min="1" max="365" 
+                       value="{{ event.reminder_days if event else '7' }}">
+                <small class="text-muted">How many days before the event should the reminder appear on the dashboard</small>
+            </div>
+            
+            <div style="grid-column: 1 / -1;">
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-save"></i> {{ 'Update Event' if event else 'Add Event' }}
+                    </button>
+                    <a href="{{ url_for('calendar_list') }}" class="btn btn-secondary">
+                        <i class="fas fa-times"></i> Cancel
+                    </a>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+// Toggle reminder days field
+document.getElementById('is_reminder').addEventListener('change', function() {
+    const reminderGroup = document.getElementById('reminder_days_group');
+    if (this.checked) {
+        reminderGroup.style.display = 'block';
+    } else {
+        reminderGroup.style.display = 'none';
+    }
+});
+</script>
+
+{% endblock %}

@@ -1,0 +1,128 @@
+{% extends 'base.html' %}
+
+{% block title %}Attendance - School Management System{% endblock %}
+
+{% block page_title %}Attendance Management{% endblock %}
+
+{% block content %}
+<div class="card" style="margin-bottom: 25px;">
+    <div class="card-body">
+        <form method="GET" action="{{ url_for('attendance_list') }}" style="display: flex; gap: 15px; flex-wrap: wrap; align-items: flex-end;">
+            <div class="form-group" style="flex: 1; margin-bottom: 0; min-width: 200px;">
+                <label for="date" style="margin-bottom: 5px;">Select Date:</label>
+                <input type="date" id="date" name="date" value="{{ selected_date }}" style="width: 100%;">
+            </div>
+            <select name="class" style="min-width: 150px;">
+                <option value="">All Classes</option>
+                {% for class_name in classes %}
+                    <option value="{{ class_name }}" {% if class_name == class_filter %}selected{% endif %}>
+                        {{ class_name }}
+                    </option>
+                {% endfor %}
+            </select>
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-search"></i> Load
+            </button>
+        </form>
+    </div>
+</div>
+
+<!-- Attendance Statistics -->
+<div class="grid grid-3">
+    <div class="card stat-card success">
+        <i class="fas fa-check-circle" style="font-size: 32px; margin-bottom: 10px;"></i>
+        <div class="stat-number">{{ students|length }}</div>
+        <div class="stat-label">Total Students</div>
+    </div>
+    
+    <div class="card stat-card success">
+        {% set present = attendance_map.values()|selectattr('status', 'equalto', 'Present')|list|length %}
+        <i class="fas fa-user-check" style="font-size: 32px; margin-bottom: 10px;"></i>
+        <div class="stat-number">{{ present }}</div>
+        <div class="stat-label">Present</div>
+    </div>
+    
+    <div class="card stat-card danger">
+        {% set absent = attendance_map.values()|selectattr('status', 'equalto', 'Absent')|list|length %}
+        <i class="fas fa-user-times" style="font-size: 32px; margin-bottom: 10px;"></i>
+        <div class="stat-number">{{ absent }}</div>
+        <div class="stat-label">Absent</div>
+    </div>
+</div>
+
+<!-- Attendance Table -->
+<div class="card">
+    <div class="card-header">
+        <div class="card-title">
+            <i class="fas fa-clipboard-check"></i> Attendance for {{ selected_date.strftime('%d %B %Y') }}
+        </div>
+    </div>
+    
+    {% if students %}
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Roll Number</th>
+                        <th>Student Name</th>
+                        <th>Class</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for student in students %}
+                    <tr>
+                        <td><strong>{{ student.roll_number }}</strong></td>
+                        <td>{{ student.get_full_name() }}</td>
+                        <td>{{ student.class_level }}</td>
+                        <td>
+                            {% set attendance = attendance_map.get(student.id) %}
+                            {% if attendance %}
+                                {% if attendance.status == 'Present' %}
+                                    <span class="badge badge-success">{{ attendance.status }}</span>
+                                {% elif attendance.status == 'Absent' %}
+                                    <span class="badge badge-danger">{{ attendance.status }}</span>
+                                {% else %}
+                                    <span class="badge badge-warning">{{ attendance.status }}</span>
+                                {% endif %}
+                            {% else %}
+                                <span class="badge badge-info">Not Marked</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <select data-student-id="{{ student.id }}" data-date="{{ selected_date }}" 
+                                    class="attendance-status" 
+                                    style="padding: 5px 10px; border: 1px solid var(--border-color); border-radius: 4px;">
+                                <option value="Present" {% if attendance and attendance.status == 'Present' %}selected{% endif %}>Present</option>
+                                <option value="Absent" {% if attendance and attendance.status == 'Absent' %}selected{% endif %}>Absent</option>
+                                <option value="Leave" {% if attendance and attendance.status == 'Leave' %}selected{% endif %}>Leave</option>
+                            </select>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div style="padding: 40px; text-align: center;">
+            <p class="text-muted">No students found for the selected criteria.</p>
+        </div>
+    {% endif %}
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.querySelectorAll('.attendance-status').forEach(select => {
+        select.addEventListener('change', function() {
+            const studentId = this.dataset.studentId;
+            const date = this.dataset.date;
+            const status = this.value;
+            
+            setAttendanceStatus(studentId, date, status);
+        });
+    });
+</script>
+{% endblock %}
