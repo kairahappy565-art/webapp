@@ -11,11 +11,15 @@ def get_base_dir():
 
 BASE_DIR = get_base_dir()
 
+# Data directory for persistent storage (AppData on Windows)
+DATA_DIR = os.path.join(os.environ.get('APPDATA', os.path.expanduser('~')), 'SchoolManagementSystem')
+os.makedirs(DATA_DIR, exist_ok=True)
+
 
 class Config:
     """Flask application configuration"""
     SECRET_KEY = 'your-secret-key-change-in-production'
-    SQLALCHEMY_DATABASE_URI = f'sqlite:///{os.path.join(BASE_DIR, "school.db")}'
+    SQLALCHEMY_DATABASE_URI = f'sqlite:///{os.path.join(DATA_DIR, "school.db")}'
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     
     # Session configuration

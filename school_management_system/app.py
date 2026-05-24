@@ -3,7 +3,7 @@ from flask import Flask, render_template, request, jsonify, redirect, url_for, f
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import inspect, text
 from sqlalchemy.exc import IntegrityError
-from config import Config
+from config import Config, DATA_DIR
 from models import db, User, Subscription, Student, Teacher, Attendance, Grade, Fee, CalendarEvent
 from datetime import datetime, date, timedelta
 from werkzeug.security import check_password_hash, generate_password_hash
@@ -104,7 +104,7 @@ def migrate_teachers_schema():
 migrate_teachers_schema()
 
 # School name persistence helpers
-SCHOOL_NAME_FILE = os.path.join(os.path.dirname(__file__), 'school_name.txt')
+SCHOOL_NAME_FILE = os.path.join(DATA_DIR, 'school_name.txt')
 
 def load_school_name():
     if os.path.exists(SCHOOL_NAME_FILE):
