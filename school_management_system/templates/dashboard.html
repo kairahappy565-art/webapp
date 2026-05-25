@@ -12,30 +12,13 @@
     <p class="text-muted">Here's a quick overview of your school management system.</p>
 </div>
 
-<div class="subscription-summary card" style="margin-bottom: 20px; padding: 18px 20px;">
-    <div class="subscription-summary-header">
-        <div>
-            <div class="summary-chip">Subscription</div>
-            <h3 style="margin: 0; font-size: 20px; color: var(--primary-color);">License status</h3>
-            <p class="text-muted" style="margin: 8px 0 0;">Active offline subscription details for core system access.</p>
-        </div>
-        <div class="summary-status">
-            <span class="badge badge-info">{{ subscription_type or 'Not Activated' }}</span>
-        </div>
+<div class="card" style="margin-bottom: 20px; padding: 14px 18px; display:flex; align-items:center; justify-content:space-between;">
+    <div>
+        <h3 style="margin: 0; font-size: 20px; color: var(--primary-color);">License status</h3>
+        <p class="text-muted" style="margin: 6px 0 0;">Manage offline activation and subscription.</p>
     </div>
-    <div class="subscription-summary-grid">
-        <div class="summary-card summary-card-primary">
-            <span class="summary-value">{{ remaining_days }}</span>
-            <span class="summary-label">Days Remaining</span>
-        </div>
-        <div class="summary-card summary-card-success">
-            <span class="summary-value">{{ expiry_date.strftime('%d %b %Y') if expiry_date else 'N/A' }}</span>
-            <span class="summary-label">Expires On</span>
-        </div>
-        <div class="summary-card summary-card-secondary">
-            <span class="summary-value">{{ subscription_type or 'Not Active' }}</span>
-            <span class="summary-label">Plan Type</span>
-        </div>
+    <div>
+        <a href="{{ url_for('activate') }}" class="btn btn-primary">Check License Status</a>
     </div>
 </div>
 

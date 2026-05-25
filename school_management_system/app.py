@@ -9,6 +9,7 @@ from datetime import datetime, date, timedelta
 from werkzeug.security import check_password_hash, generate_password_hash
 import os
 import uuid
+import traceback
 
 app = Flask(__name__)
 app.config.from_object(Config)
@@ -1158,12 +1159,34 @@ def delete_calendar_event(event_id):
 
 @app.errorhandler(404)
 def page_not_found(error):
-    return render_template('404.html'), 404
+    # Provide a simple, friendly message for 404 errors
+    friendly_message = "The page you requested wasn't found. It may have been moved or the link is incorrect."
+    return render_template('404.html', friendly_message=friendly_message), 404
 
 @app.errorhandler(500)
 def internal_error(error):
-    db.session.rollback()
-    return render_template('500.html'), 500
+    # Log exception details for debugging and show a simple message to the user
+    try:
+        db.session.rollback()
+    except Exception:
+        pass
+
+    # Create a short error id and log the full traceback to a persistent log in DATA_DIR
+    error_id = str(uuid.uuid4())[:8]
+    tb = traceback.format_exc()
+    log_path = os.path.join(DATA_DIR, 'error.log')
+    try:
+        with open(log_path, 'a', encoding='utf-8') as fh:
+            fh.write(f"[{datetime.now().isoformat()}] ERROR {error_id}\n")
+            fh.write(tb + "\n\n")
+    except Exception:
+        pass
+
+    friendly_message = (
+        f"An unexpected error occurred while processing your request. "
+        f"Please try again. If the problem continues, contact support and quote Error ID: {error_id}"
+    )
+    return render_template('500.html', friendly_message=friendly_message, error_id=error_id), 500
 
 if __name__ == '__main__':
     with app.app_context():
