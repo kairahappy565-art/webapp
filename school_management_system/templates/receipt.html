@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+
+{% block title %}Fee Receipt - {{ school_name }}{% endblock %}
+
+{% block content %}
+<div class="receipt-container" style="max-width:900px; margin:20px auto; background:#fff; padding:24px; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color:#222;">
+    <div style="text-align:center; margin-bottom:18px;">
+        <h2 style="margin:0 0 6px 0; color:#1a237e;">{{ school_name }}</h2>
+        <p style="margin:0; font-weight:700;">Fee Receipt</p>
+        <p style="margin:4px 0 0 0; color:#666; font-size:13px;">Generated on {{ current_date.strftime('%d %B %Y') }}</p>
+    </div>
+
+    <div style="border-top:1px solid #eee; border-bottom:1px solid #eee; padding:12px 0;">
+        <div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid #f3f3f3;">
+            <div style="font-weight:600; color:#333;">Student</div>
+            <div>{{ fee.student.get_full_name() }}</div>
+        </div>
+        <div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid #f3f3f3;">
+            <div style="font-weight:600; color:#333;">Fee Type</div>
+            <div>{{ fee.fee_type }}</div>
+        </div>
+        <div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid #f3f3f3;">
+            <div style="font-weight:600; color:#333;">Amount</div>
+            <div>ZMW {{ "%.2f"|format(fee.amount) }}</div>
+        </div>
+        <div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid #f3f3f3;">
+            <div style="font-weight:600; color:#333;">Amount Paid</div>
+            <div>ZMW {{ "%.2f"|format(fee.amount_paid) }}</div>
+        </div>
+        <div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid #f3f3f3;">
+            <div style="font-weight:600; color:#333;">Balance</div>
+            <div>ZMW {{ "%.2f"|format(fee.amount - fee.amount_paid) }}</div>
+        </div>
+        <div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid #f3f3f3;">
+            <div style="font-weight:600; color:#333;">Due Date</div>
+            <div>{{ fee.due_date.strftime('%d %b %Y') }}</div>
+        </div>
+        <div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid #f3f3f3;">
+            <div style="font-weight:600; color:#333;">Payment Date</div>
+            <div>{{ fee.payment_date.strftime('%d %b %Y') if fee.payment_date else '-' }}</div>
+        </div>
+        <div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid #f3f3f3;">
+            <div style="font-weight:600; color:#333;">Status</div>
+            <div>{{ fee.status }}</div>
+        </div>
+        <div style="display:flex; justify-content:space-between; padding:8px 0;">
+            <div style="font-weight:600; color:#333;">Payment Method</div>
+            <div>{{ fee.payment_method or '-' }}</div>
+        </div>
+    </div>
+
+    <div style="margin-top:18px; display:flex; justify-content:space-between; align-items:center;">
+        <div style="font-size:13px; color:#666;">Reference: {{ fee.id }}</div>
+        <div>
+            <button class="btn btn-primary no-print" onclick="window.print()" style="padding:8px 14px;">Print</button>
+        </div>
+    </div>
+</div>
+
+<style>
+@media print {
+    /* Hide everything except the receipt container when printing */
+    body * { visibility: hidden !important; }
+    .receipt-container, .receipt-container * { visibility: visible !important; }
+    .receipt-container { position: absolute !important; left: 0 !important; top: 0 !important; width: 100% !important; margin: 0 !important; }
+    .no-print { display: none !important; }
+}
+</style>
+
+{% endblock %}

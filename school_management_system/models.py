@@ -233,3 +233,17 @@ class CalendarEvent(db.Model):
             return False
         days_until = self.days_until()
         return days_until >= 0 and days_until <= self.reminder_days
+
+
+class SchoolSettings(db.Model):
+    """Global school-level settings stored in DB"""
+    __tablename__ = 'school_settings'
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
+    school_name = db.Column(db.String(250), nullable=True)
+    logo_path = db.Column(db.String(500), nullable=True)
+    address = db.Column(db.Text, nullable=True)
+    updated_at = db.Column(db.DateTime, default=datetime.now, onupdate=datetime.now)
+
+    user = db.relationship('User', backref=db.backref('school_settings', uselist=False))

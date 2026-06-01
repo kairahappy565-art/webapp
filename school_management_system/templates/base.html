@@ -4,154 +4,67 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}School Management System{% endblock %}</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='icons/css/all.min.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     {% block extra_css %}{% endblock %}
 </head>
 <body>
-    <!-- Sidebar Navigation -->
-    <aside class="sidebar">
-        <div class="brand">
-            <h1><i class="fas fa-graduation-cap"></i> SMS</h1>
-            <p>School Management</p>
-        </div>
-        
-        <nav>
-            <ul class="nav-menu">
-                <li class="nav-item">
-                    <a href="{{ url_for('dashboard') }}" class="nav-link {% if request.path == '/' %}active{% endif %}">
-                        <i class="fas fa-chart-line"></i>
-                        Dashboard
-                    </a>
-                </li>
-                
-                <li class="nav-item">
-                    <a href="#" class="nav-link" data-toggle="true">
-                        <i class="fas fa-users-class"></i>
-                        Students
-                        <i class="fas fa-chevron-down" style="margin-left: auto; font-size: 12px;"></i>
-                    </a>
-                    <ul class="submenu">
-                        <li><a href="{{ url_for('students_list') }}" class="nav-link"><i class="fas fa-list"></i> View All</a></li>
-                        <li><a href="{{ url_for('add_student') }}" class="nav-link"><i class="fas fa-plus"></i> Add Student</a></li>
-                    </ul>
-                </li>
-                
-                <li class="nav-item">
-                    <a href="#" class="nav-link" data-toggle="true">
-                        <i class="fas fa-chalkboard-user"></i>
-                        Teachers
-                        <i class="fas fa-chevron-down" style="margin-left: auto; font-size: 12px;"></i>
-                    </a>
-                    <ul class="submenu">
-                        <li><a href="{{ url_for('teachers_list') }}" class="nav-link"><i class="fas fa-list"></i> View All</a></li>
-                        <li><a href="{{ url_for('add_teacher') }}" class="nav-link"><i class="fas fa-plus"></i> Add Teacher</a></li>
-                    </ul>
-                </li>
-                
-                <li class="nav-item">
-                    <a href="{{ url_for('attendance_list') }}" class="nav-link {% if 'attendance' in request.path %}active{% endif %}">
-                        <i class="fas fa-clipboard-check"></i>
-                        Attendance
-                    </a>
-                </li>
-                
-                <li class="nav-item">
-                    <a href="#" class="nav-link" data-toggle="true">
-                        <i class="fas fa-chart-bar"></i>
-                        Grades
-                        <i class="fas fa-chevron-down" style="margin-left: auto; font-size: 12px;"></i>
-                    </a>
-                    <ul class="submenu">
-                        <li><a href="{{ url_for('grades_list') }}" class="nav-link"><i class="fas fa-list"></i> View All</a></li>
-                        <li><a href="{{ url_for('add_grade') }}" class="nav-link"><i class="fas fa-plus"></i> Add Grade</a></li>
-                    </ul>
-                </li>
-                
-                <li class="nav-item">
-                    <a href="#" class="nav-link" data-toggle="true">
-                        <i class="fas fa-wallet"></i>
-                        School Fees
-                        <i class="fas fa-chevron-down" style="margin-left: auto; font-size: 12px;"></i>
-                    </a>
-                    <ul class="submenu">
-                        <li><a href="{{ url_for('fees_list') }}" class="nav-link"><i class="fas fa-list"></i> View All</a></li>
-                        <li><a href="{{ url_for('add_fee') }}" class="nav-link"><i class="fas fa-plus"></i> Add Fee</a></li>
-                    </ul>
-                </li>
-                
-                <li class="nav-item">
-                    <a href="#" class="nav-link" data-toggle="true">
-                        <i class="fas fa-calendar-alt"></i>
-                        Calendar
-                        <i class="fas fa-chevron-down" style="margin-left: auto; font-size: 12px;"></i>
-                    </a>
-                    <ul class="submenu">
-                        <li><a href="{{ url_for('calendar_list') }}" class="nav-link"><i class="fas fa-list"></i> View All</a></li>
-                        <li><a href="{{ url_for('add_calendar_event') }}" class="nav-link"><i class="fas fa-plus"></i> Add Event</a></li>
-                    </ul>
-                </li>
-            </ul>
-        </nav>
-    </aside>
-    
-    <!-- Main Content Area -->
-    <div class="main-content">
-        <!-- Header -->
-        <header class="header">
-            <div>
-                <button class="btn-toggle-sidebar" title="Toggle Sidebar">
-                    <i class="fas fa-bars"></i>
-                </button>
-                <h1 class="header-title">{% block page_title %}Dashboard{% endblock %}</h1>
+    <div class="app-shell">
+        <aside class="sidebar">
+            <div class="sidebar-brand">
+                <i class="fas fa-school"></i>
+                <span>School Manager</span>
             </div>
-            <div class="header-actions">
-                <span class="text-muted" id="current-time"></span>
+            <nav>
+                <ul>
+                    <li><a href="{{ url_for('dashboard') }}" class="{% if request.path == '/' %}active{% endif %}"><i class="fas fa-chart-line"></i> Dashboard</a></li>
+                    <li><a href="{{ url_for('students_list') }}"><i class="fas fa-users"></i> Students</a></li>
+                    <li><a href="{{ url_for('teachers_list') }}"><i class="fas fa-chalkboard-teacher"></i> Teachers</a></li>
+                    <li><a href="{{ url_for('attendance_list') }}"><i class="fas fa-clipboard-check"></i> Attendance</a></li>
+                    <li><a href="{{ url_for('grades_list') }}" class="{% if request.path.startswith('/grades') %}active{% endif %}"><i class="fas fa-chart-bar"></i> Grades</a></li>
+                    <li><a href="{{ url_for('fees_list') }}" class="{% if request.path.startswith('/fees') %}active{% endif %}"><i class="fas fa-wallet"></i> Fees</a></li>
+                    <li><a href="{{ url_for('calendar_list') }}" class="{% if request.path.startswith('/calendar') %}active{% endif %}"><i class="fas fa-calendar-alt"></i> Calendar</a></li>
+                </ul>
+            </nav>
+            <div class="sidebar-footer">
                 {% if current_user %}
-                    <span class="header-user">{{ current_user.username }}</span>
-                    <a href="{{ url_for('logout') }}" class="btn btn-secondary">Logout</a>
+                    <div class="profile-avatar">{{ current_user.username[0]|upper }}</div>
+                    <div>{{ current_user.username }}</div>
                 {% else %}
-                    <a href="{{ url_for('login') }}" class="btn btn-secondary">Login</a>
+                    <div class="profile-avatar"><i class="fas fa-user"></i></div>
+                    <div>Guest</div>
                 {% endif %}
             </div>
-        </header>
-        
-        <!-- Notifications Container -->
-        <div id="notification-container" style="position: fixed; top: 80px; right: 20px; z-index: 999; max-width: 400px;"></div>
-        
-        <!-- Content -->
-        <main class="content">
-            {% with messages = get_flashed_messages(with_categories=true) %}
-                {% if messages %}
-                    {% for category, message in messages %}
-                        <div class="alert alert-{{ 'success' if category == 'success' else 'danger' if category == 'error' else 'info' }}">
-                            {{ message }}
-                        </div>
-                    {% endfor %}
-                {% endif %}
-            {% endwith %}
-            
-            {% block content %}{% endblock %}
-        </main>
+        </aside>
+
+        <div class="main-content">
+            <header class="topbar">
+                <div class="topbar-title">{% block page_title %}Dashboard{% endblock %}</div>
+                <div class="topbar-actions">
+                    {% if current_user %}
+                        <a href="{{ url_for('logout') }}" class="btn btn-secondary">Logout</a>
+                    {% else %}
+                        <a href="{{ url_for('login') }}" class="btn btn-primary">Login</a>
+                    {% endif %}
+                </div>
+            </header>
+
+            <main class="page-content">
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ 'success' if category == 'success' else 'danger' if category == 'error' else 'info' }}">
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+                {% block content %}{% endblock %}
+            </main>
+        </div>
     </div>
-    
-    <!-- Scripts -->
+
     <script src="{{ url_for('static', filename='js/script.js') }}"></script>
     {% block extra_js %}{% endblock %}
-    
-    <script>
-        // Update current time
-        function updateTime() {
-            const now = new Date();
-            const timeString = now.toLocaleTimeString('en-US', {
-                hour: '2-digit',
-                minute: '2-digit',
-                second: '2-digit'
-            });
-            document.getElementById('current-time').textContent = timeString;
-        }
-        updateTime();
-        setInterval(updateTime, 1000);
-    </script>
 </body>
 </html>

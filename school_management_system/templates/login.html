@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - School Management System</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='icons/css/all.min.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body class="login-page">
@@ -28,7 +28,7 @@
                 {% endif %}
             {% endwith %}
 
-            <form method="post" action="{{ url_for('login') }}" class="auth-form" autocomplete="off">
+            <form method="post" action="{{ url_for('login') }}" class="auth-form" autocomplete="off" id="login-form">
                 <div class="form-group">
                     <label for="username">Username</label>
                     <input type="text" name="username" id="username" value="{{ username if username else '' }}" required autofocus autocomplete="off">
@@ -37,7 +37,10 @@
                     <label for="password">Password</label>
                     <input type="password" name="password" id="password" required autocomplete="new-password">
                 </div>
-                <button type="submit" class="btn btn-primary btn-block">Login</button>
+                <button type="submit" class="btn btn-primary btn-block" id="login-btn">Login</button>
+                <div id="login-loading" style="display:none; text-align:center; margin-top:16px; color:#2563eb;">
+                    <i class="fas fa-spinner fa-spin"></i> Verifying credentials...
+                </div>
             </form>
 
             <div class="auth-footer">
@@ -45,5 +48,37 @@
             </div>
         </div>
     </div>
+
+    <script>
+        document.getElementById('login-form').addEventListener('submit', function(e) {
+            const loginBtn = document.getElementById('login-btn');
+            const loginLoading = document.getElementById('login-loading');
+            
+            loginBtn.style.display = 'none';
+            loginLoading.style.display = 'block';
+            
+            // Auto-submit the form after showing loading state
+            // The form will post to the server and the page will redirect
+        });
+
+        // Auto-redirect if successful login was processed
+        // This handles the case where redirect already occurred
+        window.addEventListener('load', function() {
+            const alerts = document.querySelectorAll('.alert');
+            const hasErrorAlert = Array.from(alerts).some(alert => alert.classList.contains('alert-danger'));
+            
+            // If no error alert and page loaded (form was submitted), credentials are valid
+            if (!hasErrorAlert && document.body.classList.contains('login-page')) {
+                // Check if there's a success flash message
+                const successAlert = Array.from(alerts).find(alert => alert.classList.contains('alert-success'));
+                if (successAlert) {
+                    // Redirect to dashboard after showing success for 500ms
+                    setTimeout(() => {
+                        window.location.href = '{{ url_for("dashboard") }}';
+                    }, 500);
+                }
+            }
+        });
+    </script>
 </body>
 </html>

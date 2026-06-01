@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+
+{% block title %}Fee Receipt - {{ fee.student.get_full_name() }}{% endblock %}
+
+{% block page_title %}Fee Receipt{% endblock %}
+
+{% block content %}
+<style>
+    .receipt-container {
+        max-width: 800px;
+        margin: 20px auto;
+        background: white;
+        padding: 20px;
+        border: 1px solid #ddd;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        color: #333;
+    }
+
+    .receipt-header { text-align: center; margin-bottom: 20px; }
+    .receipt-details { margin-bottom: 16px; }
+    .receipt-row { display:flex; justify-content:space-between; padding:6px 0; }
+    .receipt-label { font-weight: bold; color: #1a237e; }
+
+    .btn-print { background: #43a047; color: #fff; padding: 8px 12px; border-radius:4px; border:none; cursor:pointer; }
+
+    @media print {
+        /* hide chrome */
+        body, html { background: #fff; }
+        .sidebar, nav, header, .btn, .btn-print, .action-row, .page-head, .page-head-actions { display: none !important; }
+        .receipt-container { border: none; margin: 0; padding: 0; }
+    }
+</style>
+
+<div class="receipt-container">
+    <div class="receipt-header">
+        <h2>{{ school_name }}</h2>
+        <p>Fee Receipt</p>
+        <p style="font-size:12px;color:#666;">Generated on {{ current_date.strftime('%d %B %Y') }}</p>
+    </div>
+
+    <div class="receipt-details">
+        <div class="receipt-row"><div class="receipt-label">Student:</div><div>{{ fee.student.get_full_name() }}</div></div>
+        <div class="receipt-row"><div class="receipt-label">Roll No.:</div><div>{{ fee.student.roll_number }}</div></div>
+        <div class="receipt-row"><div class="receipt-label">Fee Type:</div><div>{{ fee.fee_type }}</div></div>
+        <div class="receipt-row"><div class="receipt-label">Amount:</div><div>ZMW {{ "%.2f"|format(fee.amount) }}</div></div>
+        <div class="receipt-row"><div class="receipt-label">Amount Paid:</div><div>ZMW {{ "%.2f"|format(fee.amount_paid) }}</div></div>
+        <div class="receipt-row"><div class="receipt-label">Balance:</div><div>ZMW {{ "%.2f"|format(fee.amount - fee.amount_paid) }}</div></div>
+        <div class="receipt-row"><div class="receipt-label">Payment Method:</div><div>{{ fee.payment_method or '-' }}</div></div>
+        <div class="receipt-row"><div class="receipt-label">Payment Date:</div><div>{{ fee.payment_date.strftime('%d %b %Y') if fee.payment_date else '-' }}</div></div>
+        <div class="receipt-row"><div class="receipt-label">Status:</div><div>{{ fee.status }}</div></div>
+    </div>
+
+    <div style="text-align:center; margin-top:20px;">
+        <button class="btn-print" onclick="window.print()"><i class="fas fa-print"></i> Print Receipt</button>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    window.onload = function() {
+        window.print();
+    };
+</script>
+{% endblock %}

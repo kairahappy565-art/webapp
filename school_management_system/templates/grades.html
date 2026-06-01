@@ -5,22 +5,28 @@
 {% block page_title %}Grades Management{% endblock %}
 
 {% block content %}
-<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
+<div class="page-head">
     <div>
-        <p class="text-muted">Manage student grades and marks</p>
+        <p class="page-subtitle">Grades management</p>
+        <h2 class="page-heading">Review and manage student performance</h2>
+        <p class="page-description">Filter grades, track performance, and generate report cards from a clean and responsive workspace.</p>
     </div>
-    <div style="display: flex; gap: 10px;">
-        <a href="{{ url_for('add_grade') }}" class="btn btn-primary">
-            <i class="fas fa-plus"></i> Add Grade
-        </a>
+    <div class="page-head-actions">
+        <a href="{{ url_for('add_grade') }}" class="btn btn-primary btn-small"><i class="fas fa-plus"></i> Add Grade</a>
     </div>
 </div>
 
-<!-- Search and Filters -->
-<div class="card">
-    <div class="card-body">
-        <form method="GET" action="{{ url_for('grades_list') }}" style="display: flex; gap: 15px; flex-wrap: wrap;">
-            <select name="student" id="student-filter" style="min-width: 200px;">
+<div class="card card-surface card-panel">
+    <div class="panel-header">
+        <div>
+            <p class="section-label">Filter grades</p>
+            <h3>Search by student or subject</h3>
+        </div>
+    </div>
+    <form method="GET" action="{{ url_for('grades_list') }}" class="filter-form">
+        <div class="filter-group">
+            <label for="student-filter">Student</label>
+            <select name="student" id="student-filter">
                 <option value="">All Students</option>
                 {% for student in students %}
                     <option value="{{ student.id }}" {% if student.id == student_filter %}selected{% endif %}>
@@ -28,7 +34,10 @@
                     </option>
                 {% endfor %}
             </select>
-            <select name="subject" style="min-width: 150px;">
+        </div>
+        <div class="filter-group">
+            <label for="subject-filter">Subject</label>
+            <select name="subject" id="subject-filter">
                 <option value="">All Subjects</option>
                 {% for subject in subjects %}
                     <option value="{{ subject }}" {% if subject == subject_filter %}selected{% endif %}>
@@ -36,63 +45,47 @@
                     </option>
                 {% endfor %}
             </select>
-            <button type="submit" class="btn btn-primary">
-                <i class="fas fa-search"></i> Filter
-            </button>
-        </form>
-    </div>
+        </div>
+        <button type="submit" class="btn btn-primary btn-small filter-submit"><i class="fas fa-search"></i> Filter</button>
+    </form>
 </div>
 
-<!-- Report Card Quick Access -->
-{% if student_filter %}
-    {% set selected_student = students|selectattr('id', 'equalto', student_filter|int)|first %}
-    {% if selected_student %}
-    <div class="card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; margin-bottom: 20px;">
-        <div class="card-body" style="display: flex; justify-content: space-between; align-items: center;">
+<div class="card card-surface overview-card">
+    {% if student_filter %}
+        {% set selected_student = students|selectattr('id', 'equalto', student_filter|int)|first %}
+        {% if selected_student %}
+        <div class="overview-banner overview-banner-accent">
             <div>
-                <h3 style="margin: 0 0 10px 0; color: white;">
-                    <i class="fas fa-file-alt"></i> Report Card - {{ selected_student.get_full_name() }}
-                </h3>
-                <p style="margin: 0; opacity: 0.9;">View and print a complete report card with all subjects and grades for this student</p>
+                <p class="section-label">Report card ready</p>
+                <h3>Grades for {{ selected_student.get_full_name() }}</h3>
+                <p class="page-description">View the selected student&apos;s performance summary and access their report card.</p>
             </div>
-            <a href="{{ url_for('student_report_card', student_id=selected_student.id) }}" class="btn" style="background: white; color: #667eea; font-weight: bold; padding: 10px 20px; border-radius: 5px; display: inline-flex; align-items: center; gap: 8px; text-decoration: none;">
-                <i class="fas fa-print"></i> View Report Card
-            </a>
+            <a href="{{ url_for('student_report_card', student_id=selected_student.id) }}" class="btn btn-primary btn-small outline-light"><i class="fas fa-file-alt"></i> View Report Card</a>
         </div>
-    </div>
+        {% endif %}
+    {% else %}
+        <div class="overview-banner overview-banner-light">
+            <div>
+                <h3>Tip: Access report cards faster</h3>
+                <p class="page-description">Select a student from the filter above to view their complete report card with all grades and remarks.</p>
+            </div>
+        </div>
     {% endif %}
-{% else %}
-<div class="card" style="background: #e3f2fd; border-left: 4px solid #667eea; margin-bottom: 20px;">
-    <div class="card-body" style="display: flex; align-items: center; gap: 15px;">
-        <div style="font-size: 32px; color: #667eea;">
-            <i class="fas fa-lightbulb"></i>
-        </div>
-        <div>
-            <h3 style="margin: 0 0 5px 0; color: #667eea; font-size: 16px;">
-                <strong>💡 Tip: Generate Report Cards</strong>
-            </h3>
-            <p style="margin: 0; color: #555; font-size: 14px;">
-                Select a student from the dropdown above to generate and print their complete report card with all subjects and grades!
-            </p>
-        </div>
-    </div>
 </div>
-{% endif %}
 
-<!-- Grades Table -->
-<div class="card">
+<div class="card card-surface">
     {% if grades.items %}
         <div class="table-container">
-            <table class="table-sortable">
+            <table class="grades-table">
                 <thead>
                     <tr>
-                        <th data-sortable>Student Name</th>
-                        <th data-sortable>Subject</th>
-                        <th data-sortable>Exam</th>
-                        <th data-sortable>Marks</th>
-                        <th data-sortable>Percentage</th>
-                        <th data-sortable>Grade</th>
-                        <th data-sortable>Date</th>
+                        <th>Student Name</th>
+                        <th>Subject</th>
+                        <th>Exam</th>
+                        <th>Marks</th>
+                        <th>Percentage</th>
+                        <th>Grade</th>
+                        <th>Date</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -112,28 +105,14 @@
                         </td>
                         <td>
                             {% if grade.grade %}
-                                <span class="badge" style="background-color: 
-                                    {% if grade.grade == 'Distinction' %}rgba(67, 160, 71, 0.1); color: var(--success-color);
-                                    {% elif grade.grade == 'Merit' %}rgba(30, 136, 229, 0.1); color: var(--info-color);
-                                    {% elif grade.grade == 'Credit' %}rgba(251, 140, 0, 0.1); color: var(--warning-color);
-                                    {% elif grade.grade == 'Pass' %}rgba(255, 152, 0, 0.1); color: orange;
-                                    {% else %}rgba(229, 57, 53, 0.1); color: var(--danger-color);
-                                    {% endif %}">
-                                    {{ grade.grade }}
-                                </span>
+                                <span class="badge badge-grade badge-{{ grade.grade|lower|replace(' ', '-') }}">{{ grade.grade }}</span>
                             {% endif %}
                         </td>
                         <td>{{ grade.recorded_date.strftime('%d %b %Y') }}</td>
-                        <td>
-                            <a href="{{ url_for('edit_grade', grade_id=grade.id) }}" 
-                               class="btn btn-warning btn-small" title="Edit">
-                                <i class="fas fa-edit"></i>
-                            </a>
-                            <form action="{{ url_for('delete_grade', grade_id=grade.id) }}" method="POST" style="display: inline;">
-                                <button type="button" class="btn btn-danger btn-small btn-delete" data-item="grade"
-                                        onclick="if(confirm('Are you sure you want to delete this grade?')) this.closest('form').submit();">
-                                    <i class="fas fa-trash"></i>
-                                </button>
+                        <td class="actions-cell">
+                            <a href="{{ url_for('edit_grade', grade_id=grade.id) }}" class="btn btn-warning btn-small" title="Edit"><i class="fas fa-edit"></i></a>
+                            <form action="{{ url_for('delete_grade', grade_id=grade.id) }}" method="POST" class="inline-form">
+                                <button type="button" class="btn btn-danger btn-small" onclick="if(confirm('Are you sure you want to delete this grade?')) this.closest('form').submit();"><i class="fas fa-trash"></i></button>
                             </form>
                         </td>
                     </tr>
@@ -141,17 +120,15 @@
                 </tbody>
             </table>
         </div>
-        
-        <!-- Pagination -->
+
         {% if grades.pages > 1 %}
-        <div style="padding: 20px; display: flex; justify-content: center; gap: 5px;">
+        <div class="pagination-bar">
             {% for page_num in grades.iter_pages() %}
                 {% if page_num %}
                     {% if page_num == grades.page %}
                         <span class="pagination active">{{ page_num }}</span>
                     {% else %}
-                        <a href="{{ url_for('grades_list', page=page_num, student=student_filter, subject=subject_filter) }}" 
-                           class="pagination">{{ page_num }}</a>
+                        <a href="{{ url_for('grades_list', page=page_num, student=student_filter, subject=subject_filter) }}" class="pagination">{{ page_num }}</a>
                     {% endif %}
                 {% else %}
                     <span class="pagination">...</span>
@@ -159,29 +136,22 @@
             {% endfor %}
         </div>
         {% endif %}
-        
-        <!-- Print Report Card Button -->
+
         {% if student_filter %}
             {% set student_for_report = students|selectattr('id', 'equalto', student_filter|int)|first %}
             {% if student_for_report %}
-            <div style="padding: 20px; text-align: center; border-top: 1px solid #e0e0e0;">
-                <a href="{{ url_for('student_report_card', student_id=student_for_report.id) }}" 
-                   class="btn" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 12px 30px; font-size: 16px; font-weight: bold; border-radius: 5px; text-decoration: none; display: inline-flex; align-items: center; gap: 10px;">
-                    <i class="fas fa-print" style="font-size: 18px;"></i> Print Report Card
-                </a>
+            <div class="report-footer">
+                <a href="{{ url_for('student_report_card', student_id=student_for_report.id) }}" class="btn btn-primary btn-small outline-light"><i class="fas fa-file-alt"></i> View Report Card</a>
             </div>
             {% endif %}
         {% endif %}
     {% else %}
-        <div style="padding: 40px; text-align: center;">
-            <i class="fas fa-inbox" style="font-size: 48px; color: var(--border-color); margin-bottom: 20px;"></i>
-            <h3 class="text-muted">No grades found</h3>
-            <p class="text-muted">Start by adding grades for students.</p>
-            <a href="{{ url_for('add_grade') }}" class="btn btn-primary">
-                <i class="fas fa-plus"></i> Add First Grade
-            </a>
+        <div class="empty-state">
+            <i class="fas fa-inbox empty-icon"></i>
+            <h3>No grades available</h3>
+            <p class="text-muted">Capture grade entries for students to build a comprehensive performance report.</p>
+            <a href="{{ url_for('add_grade') }}" class="btn btn-primary btn-small"><i class="fas fa-plus"></i> Add Grade</a>
         </div>
     {% endif %}
 </div>
-
 {% endblock %}

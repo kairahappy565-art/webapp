@@ -5,61 +5,73 @@
 {% block page_title %}{{ title }}{% endblock %}
 
 {% block content %}
+<div class="page-head">
+    <div>
+        <p class="page-subtitle">Teacher profile</p>
+        <h2 class="page-heading">{{ title }}</h2>
+        <p class="page-description">Update teacher details, contact information, and employment status with a refined page layout.</p>
+    </div>
+    <div class="page-head-actions">
+        <a href="{{ url_for('teachers_list') }}" class="btn btn-secondary btn-small"><i class="fas fa-arrow-left"></i> Back to Teachers</a>
+    </div>
+</div>
+
 <div class="grid grid-2">
-    <div style="grid-column: 1 / -1;">
-        <div class="card">
-            <div class="card-body">
-                <form method="POST" class="form-row">
+    <div>
+        <div class="card card-surface">
+            <div class="card-header card-header-strong">
+                <div>
+                    <p class="section-label">Teacher details</p>
+                    <h3 style="margin:0;">Personal & employment information</h3>
+                    <p class="small-keynote">Maintain a clean teacher profile with required fields prioritized for quick updates.</p>
+                </div>
+                {% if teacher %}
+                <div class="status-pulse">{{ teacher.status }}</div>
+                {% endif %}
+            </div>
+
+            <form method="POST" class="form-layout">
+                <div class="form-grid">
                     <div class="form-group">
                         <label for="employee_id">Employee ID *</label>
-                        <input type="text" id="employee_id" name="employee_id" required
-                               value="{{ teacher.employee_id if teacher else '' }}">
+                        <input type="text" id="employee_id" name="employee_id" required value="{{ teacher.employee_id if teacher else '' }}">
                     </div>
-                    
+
                     <div class="form-group">
                         <label for="first_name">First Name *</label>
-                        <input type="text" id="first_name" name="first_name" required
-                               value="{{ teacher.first_name if teacher else '' }}">
+                        <input type="text" id="first_name" name="first_name" required value="{{ teacher.first_name if teacher else '' }}">
                     </div>
-                    
+
                     <div class="form-group">
                         <label for="last_name">Last Name *</label>
-                        <input type="text" id="last_name" name="last_name" required
-                               value="{{ teacher.last_name if teacher else '' }}">
+                        <input type="text" id="last_name" name="last_name" required value="{{ teacher.last_name if teacher else '' }}">
                     </div>
-                    
+
                     <div class="form-group">
                         <label for="email">Email Address</label>
-                        <input type="email" id="email" name="email"
-                               value="{{ teacher.email if teacher else '' }}">
+                        <input type="email" id="email" name="email" value="{{ teacher.email if teacher else '' }}">
                     </div>
-                    
+
                     <div class="form-group">
                         <label for="phone">Phone Number *</label>
-                        <input type="tel" id="phone" name="phone" required
-                               value="{{ teacher.phone if teacher else '' }}">
+                        <input type="tel" id="phone" name="phone" required value="{{ teacher.phone if teacher else '' }}">
                     </div>
-                    
+
                     <div class="form-group">
                         <label for="qualification">Qualification</label>
-                        <input type="text" id="qualification" name="qualification"
-                               value="{{ teacher.qualification if teacher else '' }}"
-                               placeholder="e.g., B.Sc, M.A">
+                        <input type="text" id="qualification" name="qualification" value="{{ teacher.qualification if teacher else '' }}" placeholder="e.g., B.Sc, M.A">
                     </div>
-                    
+
                     <div class="form-group">
                         <label for="specialization">Specialization</label>
-                        <input type="text" id="specialization" name="specialization"
-                               value="{{ teacher.specialization if teacher else '' }}"
-                               placeholder="e.g., Mathematics, Physics">
+                        <input type="text" id="specialization" name="specialization" value="{{ teacher.specialization if teacher else '' }}" placeholder="e.g., Mathematics, Physics">
                     </div>
-                    
+
                     <div class="form-group">
                         <label for="date_of_birth">Date of Birth</label>
-                        <input type="date" id="date_of_birth" name="date_of_birth"
-                               value="{{ teacher.date_of_birth if teacher else '' }}">
+                        <input type="date" id="date_of_birth" name="date_of_birth" value="{{ teacher.date_of_birth if teacher else '' }}">
                     </div>
-                    
+
                     <div class="form-group">
                         <label for="gender">Gender</label>
                         <select id="gender" name="gender">
@@ -69,25 +81,17 @@
                             <option value="Other" {% if teacher and teacher.gender == 'Other' %}selected{% endif %}>Other</option>
                         </select>
                     </div>
-                    
+
                     <div class="form-group">
                         <label for="department">Department</label>
-                        <input type="text" id="department" name="department"
-                               value="{{ teacher.department if teacher else '' }}"
-                               placeholder="e.g., Science, Mathematics">
+                        <input type="text" id="department" name="department" value="{{ teacher.department if teacher else '' }}" placeholder="e.g., Science, Mathematics">
                     </div>
-                    
+
                     <div class="form-group">
                         <label for="salary">Salary</label>
-                        <input type="number" id="salary" name="salary" step="0.01"
-                               value="{{ teacher.salary if teacher else '' }}">
+                        <input type="number" id="salary" name="salary" step="0.01" value="{{ teacher.salary if teacher else '' }}">
                     </div>
-                    
-                    <div class="form-group">
-                        <label for="address">Address</label>
-                        <textarea id="address" name="address">{{ teacher.address if teacher else '' }}</textarea>
-                    </div>
-                    
+
                     {% if teacher %}
                     <div class="form-group">
                         <label for="status">Status</label>
@@ -98,21 +102,61 @@
                         </select>
                     </div>
                     {% endif %}
-                    
-                    <div style="grid-column: 1 / -1;">
-                        <div class="form-actions">
-                            <button type="submit" class="btn btn-success">
-                                <i class="fas fa-save"></i> {{ 'Update Teacher' if teacher else 'Add Teacher' }}
-                            </button>
-                            <a href="{{ url_for('teachers_list') }}" class="btn btn-secondary">
-                                <i class="fas fa-times"></i> Cancel
-                            </a>
-                        </div>
+
+                    <div class="form-group form-group-full">
+                        <label for="address">Address</label>
+                        <textarea id="address" name="address" rows="5">{{ teacher.address if teacher else '' }}</textarea>
                     </div>
-                </form>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-save"></i> {{ 'Update Teacher' if teacher else 'Save Teacher' }}
+                    </button>
+                    <a href="{{ url_for('teachers_list') }}" class="btn btn-secondary">
+                        <i class="fas fa-times"></i> Cancel
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div>
+        <div class="card card-surface">
+            <div class="section-label">Profile summary</div>
+            <div class="stat-panel" style="margin-top: 18px;">
+                <p class="stat-label">Teacher at a glance</p>
+                <div class="stat-value" style="font-size: 28px; margin-bottom: 10px;">{{ teacher.get_full_name() if teacher else 'New Teacher' }}</div>
+                <p class="small-keynote">Review key profile details before saving to keep your staff directory up to date.</p>
+            </div>
+
+            <div class="form-layout" style="margin-top: 24px; gap: 16px;">
+                <div class="form-group">
+                    <label>Employee ID</label>
+                    <div class="small-keynote">{{ teacher.employee_id if teacher else 'Pending' }}</div>
+                </div>
+                <div class="form-group">
+                    <label>Department</label>
+                    <div class="small-keynote">{{ teacher.department if teacher else 'Not assigned' }}</div>
+                </div>
+                <div class="form-group">
+                    <label>Specialization</label>
+                    <div class="small-keynote">{{ teacher.specialization if teacher else 'Not set' }}</div>
+                </div>
+                <div class="form-group">
+                    <label>Email</label>
+                    <div class="small-keynote">{{ teacher.email if teacher else 'No email' }}</div>
+                </div>
+                <div class="form-group">
+                    <label>Phone</label>
+                    <div class="small-keynote">{{ teacher.phone if teacher else 'No phone' }}</div>
+                </div>
+                <div class="form-group">
+                    <label>Status</label>
+                    <div class="small-keynote">{{ teacher.status if teacher else 'Active' }}</div>
+                </div>
             </div>
         </div>
     </div>
 </div>
-
 {% endblock %}

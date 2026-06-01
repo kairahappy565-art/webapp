@@ -6,20 +6,6 @@
 
 {% block content %}
 <style>
-    @media print {
-        body {
-            margin: 0;
-            padding: 10mm;
-        }
-        .no-print {
-            display: none;
-        }
-        .report-card-container {
-            width: 100%;
-            page-break-after: avoid;
-        }
-    }
-
     .report-card-container {
         max-width: 900px;
         margin: 0 auto;
@@ -58,28 +44,48 @@
         background: #f5f5f5;
         padding: 20px;
         border-radius: 5px;
+        width: 100%;
+        overflow: visible;
     }
 
     .info-row {
         display: flex;
-        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 12px;
+        align-items: center;
         margin-bottom: 10px;
     }
 
     .info-label {
         font-weight: bold;
         color: #1a237e;
-        width: 40%;
+        flex: 0 0 140px;
+        min-width: 120px;
+        white-space: nowrap;
     }
 
     .info-value {
         color: #333;
+        flex: 1 1 0;
+        min-width: 0;
+        overflow-wrap: anywhere;
+        word-break: break-word;
+    }
+
+    .grades-wrapper {
+        width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        margin-bottom: 12px;
     }
 
     .grades-table {
         width: 100%;
+        min-width: 760px;
         border-collapse: collapse;
         margin-bottom: 30px;
+        table-layout: fixed;
+        font-size: 12px;
     }
 
     .grades-table thead {
@@ -88,15 +94,23 @@
     }
 
     .grades-table th {
-        padding: 12px;
+        padding: 8px;
         text-align: left;
         font-weight: bold;
         border: 1px solid #ddd;
+        vertical-align: top;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 
     .grades-table td {
-        padding: 12px;
+        padding: 8px;
         border: 1px solid #ddd;
+        vertical-align: top;
+        white-space: normal;
+        overflow-wrap: anywhere;
+        word-break: break-word;
     }
 
     .grades-table tbody tr:nth-child(even) {
@@ -106,6 +120,15 @@
     .grades-table tbody tr:hover {
         background: #f0f0f0;
     }
+
+    /* Column sizing for 7 columns (Date removed) */
+    .grades-table th:nth-child(1), .grades-table td:nth-child(1) { width: 48px; }
+    .grades-table th:nth-child(2), .grades-table td:nth-child(2) { width: 36%; }
+    .grades-table th:nth-child(3), .grades-table td:nth-child(3) { width: 16%; }
+    .grades-table th:nth-child(4), .grades-table td:nth-child(4) { width: 8%; }
+    .grades-table th:nth-child(5), .grades-table td:nth-child(5) { width: 8%; }
+    .grades-table th:nth-child(6), .grades-table td:nth-child(6) { width: 8%; }
+    .grades-table th:nth-child(7), .grades-table td:nth-child(7) { width: auto; }
 
     .grade-badge {
         padding: 5px 10px;
@@ -184,13 +207,13 @@
         padding-top: 20px;
     }
 
-    .print-button {
+    .action-row {
         display: flex;
         gap: 10px;
         margin-bottom: 20px;
     }
 
-    .btn-print {
+    .btn-action {
         background: #1a237e;
         color: white;
         border: none;
@@ -201,7 +224,7 @@
         font-weight: bold;
     }
 
-    .btn-print:hover {
+    .btn-action:hover {
         background: #0d47a1;
     }
 
@@ -222,6 +245,16 @@
         background: #616161;
     }
 
+    .btn-print {
+        background: #43a047;
+        color: white;
+        min-width: 180px;
+    }
+
+    .btn-print:hover {
+        background: #388e3c;
+    }
+
     .no-grades-message {
         text-align: center;
         padding: 40px;
@@ -232,6 +265,110 @@
 
     .percentage-cell {
         font-weight: bold;
+    }
+
+    @media print {
+        * {
+            background: transparent !important;
+            color: black !important;
+            box-shadow: none !important;
+            text-shadow: none !important;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background: white;
+        }
+
+        /* Hide application chrome and other UI elements when printing */
+        .sidebar, #sidebar, .side-nav, .topbar, #topbar, .navbar, #navbar, nav, .nav, .site-header, header, .top-nav,
+        .app-logo, .site-logo, .school-logo, .logo, .profile-menu, .breadcrumbs, .avatar, .user-avatar,
+        .btn, .btn-back, .btn-print, .action-row, .no-print, .logout, .profile, .topbar-actions {
+            display: none !important;
+        }
+        html, body {
+            height: 100%;
+            background: white;
+        }
+
+        .action-row,
+        .btn-back,
+        .btn-action,
+        .btn-print,
+        form,
+        a,
+        nav,
+        header,
+        footer {
+            display: none !important;
+        }
+
+        .report-card-container {
+            max-width: 100%;
+            border: none;
+            box-shadow: none;
+            margin: 0;
+            padding: 20px;
+            page-break-after: avoid;
+        }
+
+        .report-card-header,
+        .student-info,
+        .summary-section,
+        .grades-table,
+        .footer {
+            page-break-inside: avoid;
+            box-shadow: none;
+            border: 1px solid #ccc;
+        }
+
+        .report-card-header {
+            border-bottom: 2px solid #333 !important;
+        }
+
+        .student-info,
+        .summary-section {
+            background: white !important;
+        }
+
+        .student-info {
+            border: 1px solid #ddd !important;
+        }
+
+        .summary-item {
+            background: white !important;
+            border: 1px solid #ddd !important;
+        }
+
+        .grades-table {
+            border-collapse: collapse;
+        }
+
+        .grades-table thead {
+            background: #333 !important;
+            color: white !important;
+            display: table-header-group;
+        }
+
+        .grades-table th,
+        .grades-table td {
+            border: 1px solid #333 !important;
+            color: black !important;
+        }
+
+        .grades-table tbody tr:nth-child(even) {
+            background: #f9f9f9 !important;
+        }
+
+        .grade-badge {
+            border: 1px solid #333 !important;
+        }
+
+        img {
+            max-width: 100%;
+            height: auto;
+        }
     }
 
     @media (max-width: 768px) {
@@ -253,31 +390,42 @@
     }
 </style>
 
-<div class="no-print" style="margin-bottom: 20px;">
-    <div class="print-button">
-        <button class="btn-print" onclick="window.print()">
-            <i class="fas fa-print"></i> Print Report Card
-        </button>
+<div style="margin-bottom: 20px;">
+    <div class="action-row">
         <a href="javascript:history.back()" class="btn-back">
             <i class="fas fa-arrow-left"></i> Back
         </a>
+        <button onclick="window.print()" class="btn-action btn-print">
+            <i class="fas fa-print"></i> Print Report Card
+        </button>
     </div>
 </div>
 
 <div class="report-card-container">
     <!-- Header -->
     <div class="report-card-header">
-        <form method="POST" action="" class="no-print" style="display: flex; justify-content: space-between; align-items: flex-end; gap: 15px; flex-wrap: wrap; margin-bottom: 20px;">
+        <form method="POST" action="" style="display: flex; justify-content: space-between; align-items: flex-end; gap: 15px; flex-wrap: wrap; margin-bottom: 20px;">
             <div style="flex: 1; min-width: 220px;">
                 <label for="school_name" style="display: block; font-size: 14px; margin-bottom: 6px; color: white; opacity: 0.9;">Edit School Name</label>
                 <input id="school_name" name="school_name" type="text" value="{{ school_name }}" placeholder="Enter school name" style="width: 100%; padding: 10px 12px; border-radius: 5px; border: 1px solid #ddd; background: #fff; color: #333;" />
             </div>
-            <button type="submit" class="btn-print" style="background: white; color: #667eea; padding: 12px 24px; min-width: 180px;">
-                <i class="fas fa-save"></i> Save School Name
-            </button>
+            <div style="display:flex; gap:10px; align-items:center;">
+                <label class="btn-action" style="background: white; color: #667eea; padding: 10px 14px; border-radius:5px; cursor:pointer;">
+                    <i class="fas fa-image"></i> Upload Logo
+                    <input id="reportLogoInput" type="file" accept="image/*" style="display:none;">
+                </label>
+                <button type="submit" class="btn-action" style="background: white; color: #667eea; padding: 12px 24px; min-width: 140px;">
+                    <i class="fas fa-save"></i> Save School Name
+                </button>
+            </div>
         </form>
-        <div class="school-name">{{ school_name }}</div>
-        <div class="report-card-title">Student Report Card</div>
+        <div style="display:flex; align-items:center; justify-content:center; gap:18px;">
+            <img id="reportLogo" src="{{ school_logo if school_logo else url_for('static', filename='uploads/school_logo.png') }}" alt="Logo" style="max-height:70px; display:block;" onerror="this.style.display='none'" />
+            <div>
+                <div class="school-name">{{ school_name }}</div>
+                <div class="report-card-title">Student Report Card</div>
+            </div>
+        </div>
         <div style="color: #666; font-size: 12px; margin-top: 10px;">
             Generated on {{ current_date.strftime('%d %B %Y') }}
         </div>
@@ -341,17 +489,17 @@
     <!-- Grades Table -->
     <div>
         <h3 style="color: #1a237e; margin-bottom: 15px;">Subject Grades and Marks</h3>
-        <table class="grades-table">
+        <div class="grades-wrapper">
+            <table class="grades-table">
             <thead>
                 <tr>
                     <th>#</th>
                     <th>Subject</th>
                     <th>Exam</th>
-                    <th>Marks Obtained</th>
-                    <th>Total Marks</th>
-                    <th>Percentage</th>
+                    <th>Marks</th>
+                    <th>Total</th>
+                    <th>%</th>
                     <th>Grade</th>
-                    <th>Date</th>
                 </tr>
             </thead>
             <tbody>
@@ -372,11 +520,11 @@
                             -
                         {% endif %}
                     </td>
-                    <td>{{ grade.recorded_date.strftime('%d %b %Y') }}</td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
+        </div>
     </div>
 
     <!-- Remarks Section -->
@@ -410,10 +558,7 @@
     </div>
 </div>
 
-<div class="no-print" style="text-align: center; margin-top: 20px;">
-    <button class="btn-print" onclick="window.print()" style="margin-right: 10px;">
-        <i class="fas fa-print"></i> Print Report Card
-    </button>
+<div style="text-align: center; margin-top: 20px;">
     <a href="javascript:history.back()" class="btn-back">
         <i class="fas fa-arrow-left"></i> Back
     </a>
@@ -431,5 +576,29 @@
         };
         return colorMap[grade] || '#666';
     }
+</script>
+<script>
+    // Upload logo for report card
+    document.getElementById('reportLogoInput').addEventListener('change', async function() {
+        const file = this.files[0];
+        if (!file) return;
+        const fd = new FormData();
+        fd.append('logo', file);
+        try {
+            const res = await fetch('{{ url_for("upload_logo") }}', { method: 'POST', body: fd });
+            const data = await res.json();
+            if (data.success && data.url) {
+                const img = document.getElementById('reportLogo');
+                img.src = data.url + '?t=' + Date.now();
+                img.style.display = 'block';
+                alert('Logo uploaded successfully');
+            } else {
+                alert('Upload failed');
+            }
+        } catch (err) {
+            console.error(err);
+            alert('Upload error');
+        }
+    });
 </script>
 {% endblock %}

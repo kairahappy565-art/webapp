@@ -5,139 +5,149 @@
 {% block page_title %}School Calendar Management{% endblock %}
 
 {% block content %}
-<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
+<div class="page-head">
     <div>
-        <p class="text-muted">Manage school calendar events and important dates</p>
+        <p class="page-subtitle">Calendar & events</p>
+        <h1 class="page-heading">School Calendar Management</h1>
+        <p class="page-description">Plan important school dates, schedule reminders, and track upcoming events from one place.</p>
     </div>
-    <a href="{{ url_for('add_calendar_event') }}" class="btn btn-primary">
-        <i class="fas fa-plus"></i> Add Event
-    </a>
-</div>
-
-<!-- Event Statistics -->
-<div class="grid grid-4">
-    <div class="card stat-card">
-        <i class="fas fa-calendar" style="font-size: 32px; color: var(--primary-color); margin-bottom: 10px;"></i>
-        <div class="stat-number">{{ events.total }}</div>
-        <div class="stat-label">Total Events</div>
-    </div>
-    
-    <div class="card stat-card success">
-        <i class="fas fa-clock" style="font-size: 32px; margin-bottom: 10px;"></i>
-        <div class="stat-number">{{ upcoming_count or 0 }}</div>
-        <div class="stat-label">Upcoming</div>
-    </div>
-    
-    <div class="card stat-card warning">
-        <i class="fas fa-bell" style="font-size: 32px; margin-bottom: 10px;"></i>
-        <div class="stat-number">{{ reminder_count or 0 }}</div>
-        <div class="stat-label">Reminders</div>
-    </div>
-    
-    <div class="card stat-card danger">
-        <i class="fas fa-calendar-times" style="font-size: 32px; margin-bottom: 10px;"></i>
-        <div class="stat-number">{{ past_count or 0 }}</div>
-        <div class="stat-label">Past Events</div>
+    <div class="page-head-actions">
+        <a href="{{ url_for('add_calendar_event') }}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Add Event
+        </a>
     </div>
 </div>
 
-<!-- Search and Filters -->
-<div class="card">
+<div class="grid grid-4 calendar-summary">
+    <div class="card card-surface summary-card">
+        <div class="summary-card-icon primary"><i class="fas fa-calendar-alt"></i></div>
+        <div>
+            <div class="summary-card-label">Total Events</div>
+            <div class="summary-card-value">{{ events.total }}</div>
+        </div>
+    </div>
+    <div class="card card-surface summary-card">
+        <div class="summary-card-icon success"><i class="fas fa-hourglass-start"></i></div>
+        <div>
+            <div class="summary-card-label">Upcoming</div>
+            <div class="summary-card-value">{{ upcoming_count or 0 }}</div>
+        </div>
+    </div>
+    <div class="card card-surface summary-card">
+        <div class="summary-card-icon warning"><i class="fas fa-bell"></i></div>
+        <div>
+            <div class="summary-card-label">Reminders</div>
+            <div class="summary-card-value">{{ reminder_count or 0 }}</div>
+        </div>
+    </div>
+    <div class="card card-surface summary-card">
+        <div class="summary-card-icon danger"><i class="fas fa-calendar-times"></i></div>
+        <div>
+            <div class="summary-card-label">Past Events</div>
+            <div class="summary-card-value">{{ past_count or 0 }}</div>
+        </div>
+    </div>
+</div>
+
+<div class="card card-surface">
+    <div class="card-header">
+        <div>
+            <h2 style="margin: 0; font-size: 18px;">Filter events</h2>
+            <p class="small-keynote">Search calendar events by type and keep event lists focused.</p>
+        </div>
+    </div>
     <div class="card-body">
-        <form method="GET" action="{{ url_for('calendar_list') }}" style="display: flex; gap: 15px; flex-wrap: wrap;">
-            <select name="type" style="min-width: 200px;">
-                <option value="">All Event Types</option>
-                {% for event_type in event_types %}
-                    <option value="{{ event_type }}" {% if event_type == type_filter %}selected{% endif %}>
-                        {{ event_type }}
-                    </option>
-                {% endfor %}
-            </select>
-            <button type="submit" class="btn btn-primary">
-                <i class="fas fa-search"></i> Filter
-            </button>
+        <form method="GET" action="{{ url_for('calendar_list') }}" class="filter-form">
+            <div class="filter-group">
+                <label for="type">Event type</label>
+                <select id="type" name="type">
+                    <option value="">All Event Types</option>
+                    {% for event_type in event_types %}
+                        <option value="{{ event_type }}" {% if event_type == type_filter %}selected{% endif %}>
+                            {{ event_type }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>&nbsp;</label>
+                <button type="submit" class="btn btn-primary filter-submit">
+                    <i class="fas fa-search"></i> Apply filter
+                </button>
+            </div>
         </form>
     </div>
 </div>
 
-<!-- Events Table -->
-<div class="card">
+<div class="card card-surface">
     {% if events.items %}
-        <div class="table-container">
-            <table class="table-sortable">
-                <thead>
-                    <tr>
-                        <th data-sortable>Title</th>
-                        <th data-sortable>Type</th>
-                        <th data-sortable>Date</th>
-                        <th data-sortable>Days Until</th>
-                        <th>Reminder</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for event in events.items %}
-                    <tr>
-                        <td>
-                            <strong>{{ event.title }}</strong>
-                            {% if event.description %}
-                                <br>
-                                <small class="text-muted">{{ event.description[:50] }}{% if event.description|length > 50 %}...{% endif %}</small>
-                            {% endif %}
-                        </td>
-                        <td>
-                            <span class="badge" style="background-color: 
-                                {% if event.event_type == 'Holiday' %}rgba(76, 175, 80, 0.1); color: var(--success-color);
-                                {% elif event.event_type == 'Exam' %}rgba(244, 67, 54, 0.1); color: var(--danger-color);
-                                {% elif event.event_type == 'Meeting' %}rgba(33, 150, 243, 0.1); color: var(--info-color);
-                                {% else %}rgba(255, 152, 0, 0.1); color: var(--warning-color);
-                                {% endif %}">
-                                {{ event.event_type }}
-                            </span>
-                        </td>
-                        <td>{{ event.event_date.strftime('%d %b %Y') }}</td>
-                        <td>
-                            {% if event.days_until() >= 0 %}
-                                {{ event.days_until() }} days
-                            {% else %}
-                                <span class="text-muted">Past</span>
-                            {% endif %}
-                        </td>
-                        <td>
-                            {% if event.is_reminder %}
-                                <i class="fas fa-bell" style="color: var(--warning-color);" title="Reminder set for {{ event.reminder_days }} days before"></i>
-                            {% else %}
-                                <i class="fas fa-bell-slash" style="color: var(--text-light);" title="No reminder"></i>
-                            {% endif %}
-                        </td>
-                        <td>
-                            <a href="{{ url_for('edit_calendar_event', event_id=event.id) }}" 
-                               class="btn btn-warning btn-small" title="Edit">
-                                <i class="fas fa-edit"></i>
+        <div class="card-header">
+            <div>
+                <h2 style="margin: 0; font-size: 18px;">Event timeline</h2>
+                <p class="small-keynote">Review upcoming and past calendar items with quick actions.</p>
+            </div>
+        </div>
+        <div class="calendar-events">
+            {% for event in events.items %}
+            <article class="event-card">
+                <div class="event-card-date">
+                    <span class="event-day">{{ event.event_date.strftime('%d') }}</span>
+                    <span class="event-month">{{ event.event_date.strftime('%b') }}</span>
+                    <span class="event-weekday">{{ event.event_date.strftime('%a') }}</span>
+                </div>
+                <div class="event-card-body">
+                    <div class="event-card-title">
+                        <div>
+                            <h3>{{ event.title }}</h3>
+                            <div class="event-card-meta">
+                                <span class="badge badge-{{ event.event_type|lower|replace(' ', '-') }}">
+                                    {{ event.event_type }}
+                                </span>
+                                <span>{{ event.event_date.strftime('%A, %d %b %Y') }}</span>
+                                <span>
+                                    {% if event.days_until() >= 0 %}
+                                        {{ event.days_until() }} days left
+                                    {% else %}
+                                        Past event
+                                    {% endif %}
+                                </span>
+                            </div>
+                        </div>
+                        <div class="event-card-actions">
+                            <a href="{{ url_for('edit_calendar_event', event_id=event.id) }}" class="btn btn-outline-primary" title="Edit Event">
+                                <i class="fas fa-edit"></i> Edit
                             </a>
-                            <form action="{{ url_for('delete_calendar_event', event_id=event.id) }}" method="POST" style="display: inline;">
-                                <button type="button" class="btn btn-danger btn-small btn-delete" data-item="event"
+                            <form action="{{ url_for('delete_calendar_event', event_id=event.id) }}" method="POST" class="inline-form">
+                                <button type="button" class="btn btn-outline-danger" title="Delete Event"
                                         onclick="if(confirm('Are you sure you want to delete this event?')) this.closest('form').submit();">
-                                    <i class="fas fa-trash"></i>
+                                    <i class="fas fa-trash"></i> Delete
                                 </button>
                             </form>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+                        </div>
+                    </div>
+                    <p class="event-card-summary">
+                        {{ event.description or 'No event description was provided.' }}
+                    </p>
+                    <div class="event-card-meta">
+                        {% if event.is_reminder %}
+                            <span class="badge badge-warning"><i class="fas fa-bell"></i> Reminder {{ event.reminder_days }} days before</span>
+                        {% else %}
+                            <span class="badge badge-info"><i class="fas fa-bell-slash"></i> No reminder</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </article>
+            {% endfor %}
         </div>
-        
-        <!-- Pagination -->
+
         {% if events.pages > 1 %}
-        <div style="padding: 20px; display: flex; justify-content: center; gap: 5px;">
+        <div class="pagination-bar">
             {% for page_num in events.iter_pages() %}
                 {% if page_num %}
                     {% if page_num == events.page %}
                         <span class="pagination active">{{ page_num }}</span>
                     {% else %}
-                        <a href="{{ url_for('calendar_list', page=page_num, type=type_filter) }}" 
-                           class="pagination">{{ page_num }}</a>
+                        <a href="{{ url_for('calendar_list', page=page_num, type=type_filter) }}" class="pagination">{{ page_num }}</a>
                     {% endif %}
                 {% else %}
                     <span class="pagination">...</span>
@@ -146,15 +156,14 @@
         </div>
         {% endif %}
     {% else %}
-        <div style="padding: 40px; text-align: center;">
-            <i class="fas fa-calendar" style="font-size: 48px; color: var(--border-color); margin-bottom: 20px;"></i>
-            <h3 class="text-muted">No events found</h3>
-            <p class="text-muted">Start by adding important dates and events to the school calendar.</p>
+        <div class="empty-state">
+            <div class="empty-icon"><i class="fas fa-calendar-alt"></i></div>
+            <h3>No events to display</h3>
+            <p class="text-muted">Add school events and reminders to keep your entire calendar organized.</p>
             <a href="{{ url_for('add_calendar_event') }}" class="btn btn-primary">
                 <i class="fas fa-plus"></i> Add First Event
             </a>
         </div>
     {% endif %}
 </div>
-
 {% endblock %}

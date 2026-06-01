@@ -6,7 +6,7 @@
 
 {% block extra_css %}
 <style>
-    .print-container {
+    .summary-container {
         padding: 20px;
     }
     .summary-card {
@@ -54,40 +54,18 @@
         margin-bottom: 10px;
         color: #333;
     }
-
-    @media print {
-        body * {
-            visibility: hidden;
-        }
-        .print-container,
-        .print-container * {
-            visibility: visible;
-        }
-        .print-container {
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: 100%;
-        }
-        .no-print {
-            display: none !important;
-        }
-    }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="print-container">
+<div class="summary-container">
     <div class="summary-card">
         <div class="summary-card-header">
             <div>
                 <h2>Grade Summary</h2>
-                <p class="text-muted">Created for a printable grade record</p>
+                <p class="text-muted">Grade record overview</p>
             </div>
-            <div class="no-print">
-                <button type="button" class="btn btn-primary" onclick="window.print();">
-                    <i class="fas fa-print"></i> Print
-                </button>
+            <div>
                 <a href="{{ url_for('grades_list') }}" class="btn btn-secondary">
                     <i class="fas fa-arrow-left"></i> Back to Grades
                 </a>

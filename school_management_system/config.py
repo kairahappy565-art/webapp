@@ -18,7 +18,7 @@ os.makedirs(DATA_DIR, exist_ok=True)
 
 class Config:
     """Flask application configuration"""
-    SECRET_KEY = 'your-secret-key-change-in-production'
+    SECRET_KEY = os.environ.get('SECRET_KEY', 'your-secret-key-change-in-production')
     SQLALCHEMY_DATABASE_URI = f'sqlite:///{os.path.join(DATA_DIR, "school.db")}'
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     
@@ -34,3 +34,6 @@ class Config:
     # Default administrator credentials for first-time setup
     DEFAULT_ADMIN_USERNAME = 'admin'
     DEFAULT_ADMIN_PASSWORD = 'admin123'
+    
+    # Master activation password
+    MASTER_ACTIVATION_PASSWORD = 'THEFREEGUY409605$'

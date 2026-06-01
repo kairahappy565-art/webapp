@@ -1,21 +1,30 @@
 from functools import wraps
 from flask import Flask, render_template, request, jsonify, redirect, url_for, flash, session, g
+from werkzeug.utils import secure_filename
+import os
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import inspect, text
 from sqlalchemy.exc import IntegrityError
 from config import Config, DATA_DIR
-from models import db, User, Subscription, Student, Teacher, Attendance, Grade, Fee, CalendarEvent
+from models import db, User, Subscription, Student, Teacher, Attendance, Grade, Fee, CalendarEvent, SchoolSettings
 from datetime import datetime, date, timedelta
 from werkzeug.security import check_password_hash, generate_password_hash
-import os
 import uuid
 import traceback
+
 
 app = Flask(__name__)
 app.config.from_object(Config)
 
 # Initialize database
 db.init_app(app)
+
+# Ensure any new tables (like SchoolSettings) exist
+with app.app_context():
+    try:
+        db.create_all()
+    except Exception:
+        pass
 
 def migrate_subscription_schema():
     """Ensure legacy subscription columns are migrated to the current schema."""
@@ -108,6 +117,14 @@ migrate_teachers_schema()
 SCHOOL_NAME_FILE = os.path.join(DATA_DIR, 'school_name.txt')
 
 def load_school_name():
+    # Prefer DB-stored school name when available
+    try:
+        setting = SchoolSettings.query.order_by(SchoolSettings.id.asc()).first()
+        if setting and setting.school_name:
+            return setting.school_name
+    except Exception:
+        pass
+
     if os.path.exists(SCHOOL_NAME_FILE):
         try:
             with open(SCHOOL_NAME_FILE, 'r', encoding='utf-8') as file:
@@ -116,17 +133,58 @@ def load_school_name():
                     return name
         except Exception:
             pass
+
     return app.config.get('SCHOOL_NAME', 'Your School Name')
 
 
 def save_school_name(name):
+    # persist to file for backwards compatibility
     try:
         with open(SCHOOL_NAME_FILE, 'w', encoding='utf-8') as file:
             file.write(name.strip())
     except Exception:
         pass
 
-MASTER_ACTIVATION_PASSWORD = 'THEFREEGUY409605$'
+    # also persist to DB
+    try:
+        setting = SchoolSettings.query.order_by(SchoolSettings.id.asc()).first()
+        if not setting:
+            setting = SchoolSettings()
+            db.session.add(setting)
+        setting.school_name = name.strip()
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+        pass
+
+
+
+def set_school_logo_path(rel_path):
+    # rel_path should be a path relative to static/ (e.g. 'uploads/school_logo.png')
+    try:
+        setting = SchoolSettings.query.order_by(SchoolSettings.id.asc()).first()
+        if not setting:
+            setting = SchoolSettings()
+            db.session.add(setting)
+        setting.logo_path = rel_path
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+        pass
+
+
+def get_school_logo_url():
+    try:
+        setting = SchoolSettings.query.order_by(SchoolSettings.id.asc()).first()
+        if setting and setting.logo_path:
+            return url_for('static', filename=setting.logo_path)
+    except Exception:
+        pass
+    # fallback to a default static path if exists
+    if os.path.exists(os.path.join(app.root_path, 'static', 'uploads', 'school_logo.png')):
+        return url_for('static', filename='uploads/school_logo.png')
+    return None
+
 SUBSCRIPTION_DURATIONS = {
     'Monthly': 30,
     'Yearly': 365
@@ -207,6 +265,14 @@ def get_subscription_info(user_id):
     }
 
 
+
+@app.before_request
+def load_current_user():
+    g.current_user = None
+    user_id = session.get('user_id')
+    if user_id:
+        g.current_user = User.query.get(user_id)
+
 # Context processor to pass globals to templates
 @app.context_processor
 def inject_globals():
@@ -223,6 +289,7 @@ def inject_globals():
         'current_date': date.today(),
         'current_year': datetime.now().year,
         'school_name': load_school_name(),
+        'school_logo': get_school_logo_url(),
         'current_user': getattr(g, 'current_user', None),
         'subscription_info': subscription_info,
         'license_info': subscription_info
@@ -235,13 +302,6 @@ def login_required(view):
             return redirect(url_for('login'))
         return view(**kwargs)
     return wrapped_view
-
-@app.before_request
-def load_current_user():
-    g.current_user = None
-    user_id = session.get('user_id')
-    if user_id:
-        g.current_user = User.query.get(user_id)
 
 @app.before_request
 def require_login():
@@ -332,7 +392,13 @@ def activate():
         activation_password = request.form.get('activation_password', '').strip()
         subscription_plan = request.form.get('subscription_plan', 'Monthly')
 
-        if activation_password != MASTER_ACTIVATION_PASSWORD:
+        # Check if master activation password is configured
+        if not app.config.get('MASTER_ACTIVATION_PASSWORD'):
+            flash(
+                'Subscription activation is currently unavailable. Please contact the administrator to configure the activation password.',
+                'error'
+            )
+        elif activation_password != app.config.get('MASTER_ACTIVATION_PASSWORD'):
             flash('Invalid activation password. Please try again.', 'error')
         elif subscription_plan not in SUBSCRIPTION_DURATIONS:
             flash('Please select a valid subscription plan.', 'error')
@@ -350,6 +416,31 @@ def activate():
         return redirect(url_for('dashboard'))
 
     return render_template('activate.html', license_info=subscription_info)
+
+@app.route('/upload_logo', methods=['POST'])
+def upload_logo():
+    if 'logo' not in request.files:
+        return {'success': False, 'message': 'No file provided'}, 400
+    file = request.files['logo']
+    if file.filename == '':
+        return {'success': False, 'message': 'Empty filename'}, 400
+
+    filename = secure_filename(file.filename)
+    upload_dir = os.path.join(app.root_path, 'static', 'uploads')
+    if not os.path.exists(upload_dir):
+        os.makedirs(upload_dir)
+
+    # Save as a fixed filename so templates can reference a stable path
+    ext = os.path.splitext(filename)[1].lower() or '.png'
+    save_filename = 'school_logo' + ext
+    save_path = os.path.join(upload_dir, save_filename)
+    file.save(save_path)
+
+    # Persist the relative path to DB settings (uploads/<filename>)
+    rel_path = os.path.join('uploads', save_filename).replace('\\', '/')
+    set_school_logo_path(rel_path)
+
+    return {'success': True, 'url': url_for('static', filename=rel_path)}
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -448,6 +539,53 @@ def dashboard():
                          expiry_date=subscription_info['expiry_date'],
                          remaining_days=subscription_info['remaining_days'])
 
+@app.route('/dashboard/chart-data')
+@login_required
+def dashboard_chart_data():
+    """Return dashboard chart data for the current user."""
+    today = date.today()
+    month_start = today.replace(day=1)
+    next_month = (month_start + timedelta(days=31)).replace(day=1)
+    month_end = next_month - timedelta(days=1)
+
+    # Number of students added each day this month
+    students_this_month = Student.query.filter(
+        Student.user_id == session['user_id'],
+        Student.created_at >= month_start,
+        Student.created_at <= month_end
+    ).all()
+
+    daily_students = {}
+    for student in students_this_month:
+        day = student.created_at.date().isoformat()
+        daily_students[day] = daily_students.get(day, 0) + 1
+
+    fees_this_month = Fee.query.filter(
+        Fee.user_id == session['user_id'],
+        Fee.created_at >= month_start,
+        Fee.created_at <= month_end
+    ).all()
+
+    collected_amount = sum(f.amount_paid for f in fees_this_month)
+    pending_amount = sum((f.amount - f.amount_paid) for f in fees_this_month if f.status == 'Pending')
+    total_fees = sum(f.amount for f in fees_this_month)
+
+    dates = []
+    student_counts = []
+    for n in range((month_end - month_start).days + 1):
+        current_day = month_start + timedelta(days=n)
+        day_key = current_day.isoformat()
+        dates.append(day_key)
+        student_counts.append(daily_students.get(day_key, 0))
+
+    return jsonify({
+        'dates': dates,
+        'student_counts': student_counts,
+        'collected_amount': collected_amount,
+        'pending_amount': pending_amount,
+        'total_fees': total_fees
+    })
+
 # ==================== STUDENT MANAGEMENT ROUTES ====================
 
 @app.route('/students')
@@ -543,7 +681,8 @@ def add_student():
                 class_level=form_data['class_level'],
                 address=form_data['address'],
                 guardian_name=form_data['guardian_name'],
-                guardian_phone=form_data['guardian_phone']
+                guardian_phone=form_data['guardian_phone'],
+                created_at=datetime.now()
             )
             db.session.add(student)
             db.session.commit()
@@ -668,7 +807,8 @@ def add_teacher():
                 gender=request.form.get('gender'),
                 department=request.form.get('department'),
                 address=request.form.get('address'),
-                salary=float(request.form.get('salary')) if request.form.get('salary') else None
+                salary=float(request.form.get('salary')) if request.form.get('salary') else None,
+                created_at=datetime.now()
             )
             db.session.add(teacher)
             db.session.commit()
@@ -952,6 +1092,9 @@ def student_report_card(student_id):
                          overall_gpa=overall_gpa,
                          school_name=school_name)
 
+
+
+# ==================== FEES ROUTES ====================
 # ==================== FEES ROUTES ====================
 
 @app.route('/fees')
@@ -1008,18 +1151,23 @@ def add_fee():
                 amount_paid=amount_paid,
                 payment_date=payment_date,
                 payment_method=request.form.get('payment_method'),
-                status='Paid' if amount_paid >= float(request.form.get('amount')) else 'Pending'
+                status='Paid' if amount_paid >= float(request.form.get('amount')) else 'Pending',
+                created_at=datetime.now()
             )
             db.session.add(fee)
             db.session.commit()
             flash('Fee added successfully!', 'success')
             return redirect(url_for('fees_list'))
+
         except Exception as e:
             db.session.rollback()
             flash(f'Error adding fee: {str(e)}', 'error')
-    
+
     students = Student.query.filter_by(user_id=session['user_id']).all()
     return render_template('fee_form.html', title='Add Fee', students=students)
+
+
+ 
 
 @app.route('/fee/<int:fee_id>/edit', methods=['GET', 'POST'])
 def edit_fee(fee_id):
@@ -1060,6 +1208,16 @@ def delete_fee(fee_id):
     
     return redirect(url_for('fees_list'))
 
+
+@app.route('/fee/<int:fee_id>/receipt')
+@login_required
+def fee_receipt(fee_id):
+    """Render a printable fee receipt"""
+    fee = Fee.query.filter_by(id=fee_id, user_id=session['user_id']).first_or_404()
+    school_name = load_school_name()
+    current_date = datetime.now()
+    return render_template('receipt.html', fee=fee, school_name=school_name, current_date=current_date)
+
 # ==================== CALENDAR ROUTES ====================
 
 @app.route('/calendar')
@@ -1069,7 +1227,6 @@ def calendar_list():
     type_filter = request.args.get('type', '')
     
     query = CalendarEvent.query.filter_by(user_id=session['user_id']).order_by(CalendarEvent.event_date)
-    
     if type_filter:
         query = query.filter_by(event_type=type_filter)
     
@@ -1189,6 +1346,13 @@ def internal_error(error):
     return render_template('500.html', friendly_message=friendly_message, error_id=error_id), 500
 
 if __name__ == '__main__':
+    import webview
+    import threading
+    import time
+
+    def run_flask():
+        app.run(debug=False, host='127.0.0.1', port=5000, use_reloader=False)
+
     with app.app_context():
         db.create_all()
         if User.query.count() == 0:
@@ -1196,5 +1360,9 @@ if __name__ == '__main__':
             default_admin.set_password(Config.DEFAULT_ADMIN_PASSWORD)
             db.session.add(default_admin)
             db.session.commit()
-            print(f"Created default admin user: {Config.DEFAULT_ADMIN_USERNAME}")
-    app.run(debug=True, host='0.0.0.0', port=5000)
+
+    flask_thread = threading.Thread(target=run_flask, daemon=True)
+    flask_thread.start()
+    time.sleep(1.5)
+    webview.create_window('School Manager', 'http://127.0.0.1:5000', width=1280, height=800, resizable=True, min_size=(800, 600))
+    webview.start()

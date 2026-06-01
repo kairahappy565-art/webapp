@@ -5,69 +5,83 @@
 {% block page_title %}Attendance Management{% endblock %}
 
 {% block content %}
-<div class="card" style="margin-bottom: 25px;">
-    <div class="card-body">
-        <form method="GET" action="{{ url_for('attendance_list') }}" style="display: flex; gap: 15px; flex-wrap: wrap; align-items: flex-end;">
-            <div class="form-group" style="flex: 1; margin-bottom: 0; min-width: 200px;">
-                <label for="date" style="margin-bottom: 5px;">Select Date:</label>
-                <input type="date" id="date" name="date" value="{{ selected_date }}" style="width: 100%;">
-            </div>
-            <select name="class" style="min-width: 150px;">
-                <option value="">All Classes</option>
-                {% for class_name in classes %}
-                    <option value="{{ class_name }}" {% if class_name == class_filter %}selected{% endif %}>
-                        {{ class_name }}
-                    </option>
-                {% endfor %}
-            </select>
-            <button type="submit" class="btn btn-primary">
-                <i class="fas fa-search"></i> Load
-            </button>
-        </form>
+<div class="page-head">
+    <div>
+        <p class="page-subtitle">Attendance management</p>
+        <h2 class="page-heading">Track daily attendance</h2>
+        <p class="page-description">Load attendance for any date and class, then update student statuses instantly from a clean responsive interface.</p>
+    </div>
+    <div class="page-head-actions">
+        <span class="small-keynote">Selected date: <strong>{{ selected_date }}</strong></span>
     </div>
 </div>
 
-<!-- Attendance Statistics -->
-<div class="grid grid-3">
-    <div class="card stat-card success">
-        <i class="fas fa-check-circle" style="font-size: 32px; margin-bottom: 10px;"></i>
-        <div class="stat-number">{{ students|length }}</div>
-        <div class="stat-label">Total Students</div>
-    </div>
-    
-    <div class="card stat-card success">
-        {% set present = attendance_map.values()|selectattr('status', 'equalto', 'Present')|list|length %}
-        <i class="fas fa-user-check" style="font-size: 32px; margin-bottom: 10px;"></i>
-        <div class="stat-number">{{ present }}</div>
-        <div class="stat-label">Present</div>
-    </div>
-    
-    <div class="card stat-card danger">
-        {% set absent = attendance_map.values()|selectattr('status', 'equalto', 'Absent')|list|length %}
-        <i class="fas fa-user-times" style="font-size: 32px; margin-bottom: 10px;"></i>
-        <div class="stat-number">{{ absent }}</div>
-        <div class="stat-label">Absent</div>
-    </div>
-</div>
-
-<!-- Attendance Table -->
-<div class="card">
-    <div class="card-header">
-        <div class="card-title">
-            <i class="fas fa-clipboard-check"></i> Attendance for {{ selected_date.strftime('%d %B %Y') }}
+<div class="card card-surface card-panel">
+    <div class="panel-header">
+        <div>
+            <p class="section-label">Daily attendance</p>
+            <h3>Filter by date and class</h3>
         </div>
     </div>
-    
+    <form method="GET" action="{{ url_for('attendance_list') }}" class="filter-form">
+        <div class="filter-group">
+            <label for="date">Select Date</label>
+            <input type="date" id="date" name="date" value="{{ selected_date }}">
+        </div>
+        <div class="filter-group">
+            <label for="class-filter">Class</label>
+            <select name="class" id="class-filter">
+                <option value="">All Classes</option>
+                {% for class_name in classes %}
+                    <option value="{{ class_name }}" {% if class_name == class_filter %}selected{% endif %}>{{ class_name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <button type="submit" class="btn btn-primary btn-small filter-submit"><i class="fas fa-search"></i> Load</button>
+    </form>
+</div>
+
+<div class="card card-surface stats-grid">
+    <div class="stat-panel stat-panel-total">
+        <p class="stat-label">Total students</p>
+        <div class="stat-value">{{ students|length }}</div>
+    </div>
+    <div class="stat-panel stat-panel-present">
+        {% set present = attendance_map.values()|selectattr('status', 'equalto', 'Present')|list|length %}
+        <p class="stat-label">Present</p>
+        <div class="stat-value">{{ present }}</div>
+    </div>
+    <div class="stat-panel stat-panel-absent">
+        {% set absent = attendance_map.values()|selectattr('status', 'equalto', 'Absent')|list|length %}
+        <p class="stat-label">Absent</p>
+        <div class="stat-value">{{ absent }}</div>
+    </div>
+    <div class="stat-panel stat-panel-unmarked">
+        {% set unmarked = students|length - (present + absent) %}
+        <p class="stat-label">Unmarked</p>
+        <div class="stat-value">{{ unmarked }}</div>
+    </div>
+</div>
+
+<div class="card card-surface attendance-card">
+    <div class="attendance-header">
+        <div>
+            <p class="section-label">Attendance sheet</p>
+            <h3>Attendance for {{ selected_date.strftime('%d %B %Y') }}</h3>
+        </div>
+        <div class="header-note">Update any student status and keep attendance records current.</div>
+    </div>
+
     {% if students %}
         <div class="table-container">
-            <table>
+            <table class="attendance-table">
                 <thead>
                     <tr>
                         <th>Roll Number</th>
                         <th>Student Name</th>
                         <th>Class</th>
                         <th>Status</th>
-                        <th>Action</th>
+                        <th>Update</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -80,20 +94,18 @@
                             {% set attendance = attendance_map.get(student.id) %}
                             {% if attendance %}
                                 {% if attendance.status == 'Present' %}
-                                    <span class="badge badge-success">{{ attendance.status }}</span>
+                                    <span class="status-pill status-present">{{ attendance.status }}</span>
                                 {% elif attendance.status == 'Absent' %}
-                                    <span class="badge badge-danger">{{ attendance.status }}</span>
+                                    <span class="status-pill status-absent">{{ attendance.status }}</span>
                                 {% else %}
-                                    <span class="badge badge-warning">{{ attendance.status }}</span>
+                                    <span class="status-pill status-leave">{{ attendance.status }}</span>
                                 {% endif %}
                             {% else %}
-                                <span class="badge badge-info">Not Marked</span>
+                                <span class="status-pill status-unmarked">Not Marked</span>
                             {% endif %}
                         </td>
                         <td>
-                            <select data-student-id="{{ student.id }}" data-date="{{ selected_date }}" 
-                                    class="attendance-status" 
-                                    style="padding: 5px 10px; border: 1px solid var(--border-color); border-radius: 4px;">
+                            <select data-student-id="{{ student.id }}" data-date="{{ selected_date }}" class="attendance-select">
                                 <option value="Present" {% if attendance and attendance.status == 'Present' %}selected{% endif %}>Present</option>
                                 <option value="Absent" {% if attendance and attendance.status == 'Absent' %}selected{% endif %}>Absent</option>
                                 <option value="Leave" {% if attendance and attendance.status == 'Leave' %}selected{% endif %}>Leave</option>
@@ -105,24 +117,58 @@
             </table>
         </div>
     {% else %}
-        <div style="padding: 40px; text-align: center;">
+        <div class="attendance-empty">
             <p class="text-muted">No students found for the selected criteria.</p>
         </div>
     {% endif %}
 </div>
-
 {% endblock %}
 
 {% block extra_js %}
 <script>
-    document.querySelectorAll('.attendance-status').forEach(select => {
+    // Function to update the attendance counters at the top
+    function updateAttendanceCounters() {
+        let presentCount = 0;
+        let absentCount = 0;
+        let unmarkedCount = 0;
+
+        document.querySelectorAll('.attendance-select').forEach(select => {
+            const status = select.value;
+            if (status === 'Present') {
+                presentCount++;
+            } else if (status === 'Absent') {
+                absentCount++;
+            } else {
+                // Leave and any other status counts as unmarked
+                unmarkedCount++;
+            }
+        });
+
+        // Update the stat panels (Present, Absent, Unmarked)
+        const statPanels = document.querySelectorAll('.stats-grid .stat-panel');
+        if (statPanels.length >= 4) {
+            // Index 1 = Present, Index 2 = Absent, Index 3 = Unmarked
+            statPanels[1].querySelector('.stat-value').textContent = presentCount;
+            statPanels[2].querySelector('.stat-value').textContent = absentCount;
+            statPanels[3].querySelector('.stat-value').textContent = unmarkedCount;
+        }
+    }
+
+    document.querySelectorAll('.attendance-select').forEach(select => {
         select.addEventListener('change', function() {
             const studentId = this.dataset.studentId;
             const date = this.dataset.date;
             const status = this.value;
             
+            // Call the existing function to save to server
             setAttendanceStatus(studentId, date, status);
+            
+            // Update the counters immediately for UI responsiveness
+            updateAttendanceCounters();
         });
     });
+
+    // Initialize counters on page load
+    updateAttendanceCounters();
 </script>
 {% endblock %}
